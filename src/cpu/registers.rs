@@ -1,21 +1,21 @@
 pub struct Registers {
-    pc: u16,
-    sp: u16,
-    a: u8,
-    b: u8,
-    c: u8,
-    d: u8,
-    e: u8,
-    f: u8,
-    h: u8,
-    l: u8
+    pub program_counter: u16,
+    pub stack_pointer: u16,
+    pub a: u8,
+    pub b: u8,
+    pub c: u8,
+    pub d: u8,
+    pub e: u8,
+    pub f: u8,
+    pub h: u8,
+    pub l: u8
 }
 
 impl Registers {
     pub fn new() -> Registers {
         Registers {
-            pc: 0x00,
-            sp: 0x00,
+            program_counter: 0x00,
+            stack_pointer: 0x00,
             a: 0x00,
             b: 0x00,
             c: 0x00,
@@ -25,46 +25,6 @@ impl Registers {
             h: 0x00,
             l: 0x00
         }
-    }
-
-    pub fn program_counter(&self) -> u16 {
-        self.pc
-    }
-
-    pub fn stack_pointer(&self) -> u16 {
-        self.sp
-    }
-
-    pub fn a(&self) -> u8 {
-        self.a
-    }
-
-    pub fn b(&self) -> u8 {
-        self.b
-    }
-
-    pub fn c(&self) -> u8 {
-        self.c
-    }
-
-    pub fn d(&self) -> u8 {
-        self.d
-    }
-
-    pub fn e(&self) -> u8 {
-        self.e
-    }
-
-    pub fn f(&self) -> u8 {
-        self.f
-    }
-
-    pub fn h(&self) -> u8 {
-        self.h
-    }
-
-    pub fn l(&self) -> u8 {
-        self.l
     }
 
     pub fn af(&self) -> u16 {
