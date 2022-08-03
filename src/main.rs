@@ -1,3 +1,8 @@
+use cpu::CPU;
+
+pub mod cpu;
+
 fn main() {
-    println!("Hello, world!");
+    let cpu = CPU::new();
+    println!("{}", cpu.registers.af());
 }
