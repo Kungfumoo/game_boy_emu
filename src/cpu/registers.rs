@@ -35,6 +35,38 @@ impl Registers {
         self.sp
     }
 
+    pub fn a(&self) -> u8 {
+        self.a
+    }
+
+    pub fn b(&self) -> u8 {
+        self.b
+    }
+
+    pub fn c(&self) -> u8 {
+        self.c
+    }
+
+    pub fn d(&self) -> u8 {
+        self.d
+    }
+
+    pub fn e(&self) -> u8 {
+        self.e
+    }
+
+    pub fn f(&self) -> u8 {
+        self.f
+    }
+
+    pub fn h(&self) -> u8 {
+        self.h
+    }
+
+    pub fn l(&self) -> u8 {
+        self.l
+    }
+
     pub fn af(&self) -> u16 {
         to16_bit(self.a, self.f)
     }
