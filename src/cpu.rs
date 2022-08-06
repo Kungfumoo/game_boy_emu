@@ -28,7 +28,18 @@ impl CPU {
     pub fn status(&self) {
         println!("PC: {}", self.registers.program_counter);
         println!(
-            "Z: {}, N: {}, H: {}, C: {}",
+            "==REG==\nA: {}, B: {}, C: {}, D: {}, E: {}, F: {}, H: {}, L: {}",
+            self.registers.a,
+            self.registers.b,
+            self.registers.c,
+            self.registers.d,
+            self.registers.e,
+            self.registers.f,
+            self.registers.h,
+            self.registers.l
+        );
+        println!(
+            "==FLAGS==\nZ: {}, N: {}, H: {}, C: {}",
             self.flags.zero,
             self.flags.subtract,
             self.flags.half_carry,

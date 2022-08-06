@@ -9,5 +9,6 @@ fn main() {
     cpu.execute(0x00);
     cpu.execute(0x10);
     cpu.execute(0x37);
+    cpu.execute(0x41);
     cpu.status();
 }

@@ -56,6 +56,34 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x00 => nop(),
         0x10 => stop(),
         0x37 => scf(),
+        0x40 => ld_register_to_register(RegisterChange { //LD B, B
+            b: Option::Some(cpu.registers.b),
+            ..RegisterChange::default()
+        }),
+        0x41 => ld_register_to_register(RegisterChange { //LD B, C
+            b: Option::Some(cpu.registers.c),
+            ..RegisterChange::default()
+        }),
+        0x42 => ld_register_to_register(RegisterChange { //LD B, D
+            b: Option::Some(cpu.registers.d),
+            ..RegisterChange::default()
+        }),
+        0x43 => ld_register_to_register(RegisterChange { //LD B, E
+            b: Option::Some(cpu.registers.e),
+            ..RegisterChange::default()
+        }),
+        0x44 => ld_register_to_register(RegisterChange { //LD B, H
+            b: Option::Some(cpu.registers.h),
+            ..RegisterChange::default()
+        }),
+        0x45 => ld_register_to_register(RegisterChange { //LD B, L
+            b: Option::Some(cpu.registers.l),
+            ..RegisterChange::default()
+        }),
+        0x47 => ld_register_to_register(RegisterChange { //LD B, A
+            b: Option::Some(cpu.registers.a),
+            ..RegisterChange::default()
+        }),
         0x76 => halt(),
         _ => StateChange {
             byte_length: 0,
@@ -63,6 +91,15 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             flags: FlagChange::default(),
             register: RegisterChange::default()
         }
+    }
+}
+
+fn ld_register_to_register(change: RegisterChange) -> StateChange {
+    StateChange {
+        byte_length: 1,
+        t_states: 4,
+        flags: FlagChange::default(),
+        register: change
     }
 }
 
