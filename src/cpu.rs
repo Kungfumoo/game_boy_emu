@@ -1,6 +1,7 @@
 //Sharp SM83 CPU
 use registers::Registers;
 use flags::Flags;
+use instructions::StateChange;
 
 mod instructions;
 mod registers;
@@ -41,29 +42,16 @@ impl CPU {
             op_code
         );
 
+        self.update(&change)
+    }
+
+    fn update(&mut self, change: &StateChange) {
         let pc_increment: &u16 = &change.byte_length.into();
         self.registers.program_counter += pc_increment;
 
         //TODO: t states
 
-        self.flags.zero = match change.flags.zero {
-            Some(state) => state,
-            None => self.flags.zero
-        };
-
-        self.flags.subtract = match change.flags.subtract {
-            Some(state) => state,
-            None => self.flags.subtract
-        };
-
-        self.flags.half_carry = match change.flags.half_carry {
-            Some(state) => state,
-            None => self.flags.half_carry
-        };
-
-        self.flags.carry = match change.flags.carry {
-            Some(state) => state,
-            None => self.flags.carry
-        };
+        self.registers.update(&change.register);
+        self.flags.update(&change.flags);
     }
 }

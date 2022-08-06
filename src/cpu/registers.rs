@@ -1,3 +1,5 @@
+use super::instructions::RegisterChange;
+
 pub struct Registers {
     pub program_counter: u16,
     pub stack_pointer: u16,
@@ -24,6 +26,40 @@ impl Registers {
             f: 0x00,
             h: 0x00,
             l: 0x00
+        }
+    }
+
+    pub fn update(&mut self, change: &RegisterChange) {
+        if let Some(value) = change.a {
+            self.a = value;
+        }
+
+        if let Some(value) = change.b {
+            self.b = value;
+        }
+
+        if let Some(value) = change.c {
+            self.c = value;
+        }
+
+        if let Some(value) = change.d {
+            self.d = value;
+        }
+
+        if let Some(value) = change.e {
+            self.e = value;
+        }
+
+        if let Some(value) = change.f {
+            self.f = value;
+        }
+
+        if let Some(value) = change.h {
+            self.h = value;
+        }
+
+        if let Some(value) = change.l {
+            self.l = value;
         }
     }
 
