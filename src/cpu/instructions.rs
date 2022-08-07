@@ -54,6 +54,10 @@ impl FlagChange {
 pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
     match op_code {
         0x00 => nop(),
+        0x0E => ld_immediate(RegisterChange {
+            c: Some(42), //TODO: fetch from memory
+            ..RegisterChange::default()
+        }),
         0x10 => stop(),
         0x37 => scf(),
         0x40 => ld_register_to_register(RegisterChange { //LD B, B
@@ -91,6 +95,15 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             flags: FlagChange::default(),
             register: RegisterChange::default()
         }
+    }
+}
+
+fn ld_immediate(change: RegisterChange) -> StateChange {
+    StateChange {
+        byte_length: 2,
+        t_states: 8,
+        flags: FlagChange::default(),
+        register: change
     }
 }
 
