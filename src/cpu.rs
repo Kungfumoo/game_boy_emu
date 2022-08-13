@@ -7,7 +7,10 @@ mod instructions;
 mod registers;
 mod flags;
 
+const MEMORY_SIZE: usize = 65536;
+
 pub struct CPU {
+    memory: [u8; MEMORY_SIZE],
     registers: Registers,
     flags: Flags
 }
@@ -15,6 +18,7 @@ pub struct CPU {
 impl CPU {
     pub fn new() -> CPU {
         CPU {
+            memory: [0; MEMORY_SIZE],
             registers: Registers::new(),
             flags: Flags {
                 zero: false,
@@ -47,7 +51,21 @@ impl CPU {
         );
     }
 
+    //execute methods mainly used for testing
     pub fn execute(&mut self, op_code: u8) {
+        self.execute_with_args(op_code, Option::None);
+    }
+
+    pub fn execute_with_args(&mut self, op_code: u8, args: Option<Vec<u8>>) {
+        if let Option::Some(args) = args {
+            let mut pc = self.registers.program_counter + 1;
+
+            for i in &args {
+                self.memory[pc as usize] = *i;
+                pc = pc + 1;
+            }
+        }
+
         let change = instructions::execute(
             self,
             op_code

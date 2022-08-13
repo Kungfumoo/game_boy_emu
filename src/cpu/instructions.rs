@@ -7,6 +7,15 @@ pub struct StateChange {
     pub register: RegisterChange
 }
 
+pub struct MemoryEdit {
+    key: u16,
+    value: u8
+}
+
+pub struct MemoryChange {
+    pub changes: Vec<MemoryEdit>
+}
+
 pub struct RegisterChange {
     pub a: Option<u8>,
     pub b: Option<u8>,
@@ -55,7 +64,11 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
     match op_code {
         0x00 => nop(),
         0x0E => ld_immediate(RegisterChange {
-            c: Some(42), //TODO: fetch from memory
+            c: {
+                let pc = cpu.registers.program_counter;
+
+                Some(cpu.memory[(pc + 1) as usize])
+            },
             ..RegisterChange::default()
         }),
         0x10 => stop(),

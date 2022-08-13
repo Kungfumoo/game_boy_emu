@@ -16,7 +16,7 @@ pub struct Registers {
 impl Registers {
     pub fn new() -> Registers {
         Registers {
-            program_counter: 0x00,
+            program_counter: 0x0150,
             stack_pointer: 0x00,
             a: 0x00,
             b: 0x00,
