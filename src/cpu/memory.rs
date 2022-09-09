@@ -1,4 +1,5 @@
 use std::ops::{Index, IndexMut};
+use super::instructions::MemoryChange;
 
 pub const MEMORY_SIZE: usize = 65536;
 
@@ -24,6 +25,12 @@ impl Memory {
     pub fn new() -> Memory {
         Memory {
             memory: [0; MEMORY_SIZE]
+        }
+    }
+
+    pub fn update(&mut self, change: &MemoryChange) {
+        for mem_change in change.changes.iter() {
+            self[mem_change.key as usize] = mem_change.value;
         }
     }
 }

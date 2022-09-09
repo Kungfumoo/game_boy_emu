@@ -4,16 +4,23 @@ pub struct StateChange {
     pub byte_length: u8,
     pub t_states: u8,
     pub flags: FlagChange,
-    pub register: RegisterChange
+    pub register: RegisterChange,
+    pub memory: MemoryChange
 }
 
 pub struct MemoryEdit {
-    key: u16,
-    value: u8
+    pub key: u16,
+    pub value: u8
 }
 
 pub struct MemoryChange {
     pub changes: Vec<MemoryEdit>
+}
+
+impl MemoryChange {
+    fn default() -> MemoryChange {
+        MemoryChange { changes: Vec::new() }
+    }
 }
 
 pub struct RegisterChange {
@@ -63,7 +70,23 @@ impl FlagChange {
 pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
     match op_code {
         0x00 => nop(),
-        0x0E => ld_immediate(RegisterChange {
+        0x02 => ld_to_absolute(MemoryChange { //LD (BC), A
+            changes: Vec::from([
+                MemoryEdit {
+                    key: cpu.registers.bc(),
+                    value: cpu.registers.a
+                }
+            ])
+        }),
+        0x06 => ld_immediate(RegisterChange { //LD B, u8
+            b: {
+                let pc = cpu.registers.program_counter;
+
+                Some(cpu.memory[(pc + 1) as usize])
+            },
+            ..RegisterChange::default()
+        }),
+        0x0E => ld_immediate(RegisterChange { //LD C, u8
             c: {
                 let pc = cpu.registers.program_counter;
 
@@ -72,6 +95,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             ..RegisterChange::default()
         }),
         0x10 => stop(),
+        0x3E => ld_immediate(RegisterChange { //LD A, u8
+            a: {
+                let pc = cpu.registers.program_counter;
+
+                Some(cpu.memory[(pc + 1) as usize])
+            },
+            ..RegisterChange::default()
+        }),
         0x37 => scf(),
         0x40 => ld_register_to_register(RegisterChange { //LD B, B
             b: Option::Some(cpu.registers.b),
@@ -106,8 +137,19 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             byte_length: 0,
             t_states: 0,
             flags: FlagChange::default(),
-            register: RegisterChange::default()
+            register: RegisterChange::default(),
+            memory: MemoryChange::default()
         }
+    }
+}
+
+fn ld_to_absolute(change: MemoryChange) -> StateChange {
+    StateChange {
+        byte_length: 1,
+        t_states: 8,
+        flags: FlagChange::default(),
+        register: RegisterChange::default(),
+        memory: change
     }
 }
 
@@ -116,7 +158,8 @@ fn ld_immediate(change: RegisterChange) -> StateChange {
         byte_length: 2,
         t_states: 8,
         flags: FlagChange::default(),
-        register: change
+        register: change,
+        memory: MemoryChange::default()
     }
 }
 
@@ -125,7 +168,8 @@ fn ld_register_to_register(change: RegisterChange) -> StateChange {
         byte_length: 1,
         t_states: 4,
         flags: FlagChange::default(),
-        register: change
+        register: change,
+        memory: MemoryChange::default()
     }
 }
 
@@ -143,7 +187,8 @@ fn scf() -> StateChange {
             half_carry: Some(false),
             ..FlagChange::default()
         },
-        register: RegisterChange::default()
+        register: RegisterChange::default(),
+        memory: MemoryChange::default()
     }
 }
 
@@ -160,6 +205,7 @@ fn nop() -> StateChange {
         byte_length: 1,
         t_states: 4,
         flags: FlagChange::default(),
-        register: RegisterChange::default()
+        register: RegisterChange::default(),
+        memory: MemoryChange::default()
     }
 }
