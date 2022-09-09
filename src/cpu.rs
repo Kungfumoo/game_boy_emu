@@ -2,15 +2,15 @@
 use registers::Registers;
 use flags::Flags;
 use instructions::StateChange;
+use memory::Memory;
 
 mod instructions;
 mod registers;
 mod flags;
-
-const MEMORY_SIZE: usize = 65536;
+mod memory;
 
 pub struct CPU {
-    memory: [u8; MEMORY_SIZE],
+    memory: Memory,
     registers: Registers,
     flags: Flags
 }
@@ -18,7 +18,7 @@ pub struct CPU {
 impl CPU {
     pub fn new() -> CPU {
         CPU {
-            memory: [0; MEMORY_SIZE],
+            memory: Memory::new(),
             registers: Registers::new(),
             flags: Flags {
                 zero: false,
