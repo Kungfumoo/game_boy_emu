@@ -26,3 +26,7 @@ impl Flags {
         }
     }
 }
+
+pub fn is_half_carry(a: u8, b: u8) -> bool {
+    (((a & 0xF) + (b & 0xF)) & 0x10) == 0x10
+}

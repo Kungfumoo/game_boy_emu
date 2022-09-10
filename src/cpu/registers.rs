@@ -80,9 +80,16 @@ impl Registers {
     }
 }
 
-fn to16_bit(left: u8, right: u8) -> u16 {
+pub fn to16_bit(left: u8, right: u8) -> u16 {
     let l16: u16 = left.into();
     let r16: u16 = right.into();
 
     (l16 << 8) | r16
+}
+
+pub fn to8_bit(value: u16) -> (u8, u8) {
+    let left: u8 = (value >> 8) as u8;
+    let right: u8 = (value & 0xFF) as u8;
+
+    (left, right)
 }
