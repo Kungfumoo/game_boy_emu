@@ -127,7 +127,10 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             ..RegisterChange::default()
         }),
-        0x10 => stop(),
+        0x10 => StateChange {
+            byte_length: 2,
+            ..nop()
+        },
         0x13 => inc16_bit({ //INC DE
             let de = cpu.registers.de() + 1;
             let (d, e) = to8_bit(de);
@@ -230,6 +233,25 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 is_half_carry(value, 1)
             )
         },
+        0x36 => { //LD (HL), u8
+            let pc = cpu.registers.program_counter;
+            let arg = cpu.memory[(pc + 1) as usize];
+
+            StateChange {
+                byte_length: 2,
+                t_states: 12,
+                flags: FlagChange::default(),
+                register: RegisterChange::default(),
+                memory: MemoryChange {
+                    changes: Vec::from([
+                        MemoryEdit {
+                            key: cpu.registers.hl(),
+                            value: arg
+                        }
+                    ])
+                }
+            }
+        },
         0x3E => ld_immediate(RegisterChange { //LD A, u8
             a: {
                 let pc = cpu.registers.program_counter;
@@ -238,7 +260,18 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             ..RegisterChange::default()
         }),
-        0x37 => scf(),
+        0x37 => StateChange {
+            byte_length: 1,
+            t_states: 4,
+            flags: FlagChange {
+                carry: Some(true),
+                subtract: Some(false),
+                half_carry: Some(false),
+                ..FlagChange::default()
+            },
+            register: RegisterChange::default(),
+            memory: MemoryChange::default()
+        },
         0x40 => ld_register_to_register(RegisterChange { //LD B, B
             b: Option::Some(cpu.registers.b),
             ..RegisterChange::default()
@@ -267,7 +300,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             b: Option::Some(cpu.registers.a),
             ..RegisterChange::default()
         }),
-        0x76 => halt(),
+        0x76 => nop(), //TODO: is this the same as nop?
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -345,32 +378,6 @@ fn ld_register_to_register(change: RegisterChange) -> StateChange {
         flags: FlagChange::default(),
         register: change,
         memory: MemoryChange::default()
-    }
-}
-
-fn halt() -> StateChange {
-    nop() //TODO: is this the same as nop?
-}
-
-fn scf() -> StateChange {
-    StateChange {
-        byte_length: 1,
-        t_states: 4,
-        flags: FlagChange {
-            carry: Some(true),
-            subtract: Some(false),
-            half_carry: Some(false),
-            ..FlagChange::default()
-        },
-        register: RegisterChange::default(),
-        memory: MemoryChange::default()
-    }
-}
-
-fn stop() -> StateChange {
-    StateChange {
-        byte_length: 2,
-        ..nop()
     }
 }
 
