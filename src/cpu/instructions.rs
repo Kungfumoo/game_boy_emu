@@ -144,6 +144,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..RegisterChange::default()
             }
         }),
+        0x12 => ld_to_absolute(MemoryChange { //LD (DE), A
+            changes: Vec::from([
+                MemoryEdit {
+                    key: cpu.registers.de(),
+                    value: cpu.registers.a
+                }
+            ])
+        }),
         0x13 => inc16_bit({ //INC DE
             let de = cpu.registers.de() + 1;
             let (d, e) = to8_bit(de);
@@ -191,6 +199,28 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..RegisterChange::default()
             }
         }),
+        0x22 => {  //LD (HL+), A
+            let addr = cpu.registers.hl();
+            let change = ld_to_absolute(MemoryChange {
+                changes: Vec::from([
+                    MemoryEdit {
+                        key: addr,
+                        value: cpu.registers.a
+                    }
+                ])
+            });
+
+            let (h, l) = to8_bit(addr + 1);
+
+            StateChange {
+                register: RegisterChange {
+                    h: Option::Some(h),
+                    l: Option::Some(l),
+                    ..change.register
+                },
+                ..change
+            }
+        },
         0x23 => inc16_bit({ //INC HL
             let hl = cpu.registers.hl() + 1;
             let (h, l) = to8_bit(hl);
@@ -240,6 +270,28 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..RegisterChange::default()
             }
         }),
+        0x32 => {  //LD (HL-), A
+            let addr = cpu.registers.hl();
+            let change = ld_to_absolute(MemoryChange {
+                changes: Vec::from([
+                    MemoryEdit {
+                        key: addr,
+                        value: cpu.registers.a
+                    }
+                ])
+            });
+
+            let (h, l) = to8_bit(addr - 1);
+
+            StateChange {
+                register: RegisterChange {
+                    h: Option::Some(h),
+                    l: Option::Some(l),
+                    ..change.register
+                },
+                ..change
+            }
+        },
         0x33 => inc16_bit({ //INC SP
             let sp = cpu.registers.stack_pointer + 1;
 

@@ -51,7 +51,11 @@ impl CPU {
             self.flags.half_carry,
             self.flags.carry
         );
-        println!("==MEMORY==\n0xC001: {}", self.memory[0xC001]);
+        println!(
+            "==MEMORY==\n0xC001: {}\n0xC002: {}",
+            self.memory[0xC001],
+            self.memory[0xC002]
+        );
     }
 
     //execute methods mainly used for testing
