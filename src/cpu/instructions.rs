@@ -24,6 +24,7 @@ impl MemoryChange {
 }
 
 pub struct RegisterChange {
+    pub sp: Option<u16>,
     pub a: Option<u8>,
     pub b: Option<u8>,
     pub c: Option<u8>,
@@ -37,6 +38,7 @@ pub struct RegisterChange {
 impl RegisterChange {
     fn default() -> RegisterChange {
         RegisterChange {
+            sp: Option::None,
             a: Option::None,
             b: Option::None,
             c: Option::None,
@@ -143,6 +145,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             RegisterChange {
                 h: Option::Some(h),
                 l: Option::Some(l),
+                ..RegisterChange::default()
+            }
+        }),
+        0x33 => inc16_bit({ //INC SP
+            let sp = cpu.registers.stack_pointer + 1;
+
+            RegisterChange {
+                sp: Option::Some(sp),
                 ..RegisterChange::default()
             }
         }),

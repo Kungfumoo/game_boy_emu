@@ -30,6 +30,10 @@ impl Registers {
     }
 
     pub fn update(&mut self, change: &RegisterChange) {
+        if let Some(value) = change.sp {
+            self.stack_pointer = value;
+        }
+
         if let Some(value) = change.a {
             self.a = value;
         }
