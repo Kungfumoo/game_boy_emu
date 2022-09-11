@@ -6,7 +6,8 @@ fn main() {
     let mut cpu = CPU::new();
 
     cpu.status();
-    cpu.execute_with_args(0x06, Option::Some(vec![15]));
-    cpu.execute(0x04);
+    cpu.execute_with_args(0x26, Option::Some(vec![0xC0]));
+    cpu.execute_with_args(0x2E, Option::Some(vec![0x01]));
+    cpu.execute(0x34);
     cpu.status();
 }

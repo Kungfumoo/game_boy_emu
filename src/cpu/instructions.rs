@@ -138,6 +138,34 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..RegisterChange::default()
             }
         }),
+        0x14 => { //INC D
+            let value = cpu.registers.d + 1;
+
+            inc8_bit(
+                RegisterChange {
+                    d: Option::Some(value),
+                    ..RegisterChange::default()
+                },
+                value == 0,
+                is_half_carry(cpu.registers.d, 1)
+            )
+        },
+        0x16 => ld_immediate(RegisterChange { //LD D, u8
+            d: {
+                let pc = cpu.registers.program_counter;
+
+                Some(cpu.memory[(pc + 1) as usize])
+            },
+            ..RegisterChange::default()
+        }),
+        0x1E => ld_immediate(RegisterChange { //LD E, u8
+            e: {
+                let pc = cpu.registers.program_counter;
+
+                Some(cpu.memory[(pc + 1) as usize])
+            },
+            ..RegisterChange::default()
+        }),
         0x23 => inc16_bit({ //INC HL
             let hl = cpu.registers.hl() + 1;
             let (h, l) = to8_bit(hl);
@@ -148,6 +176,34 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..RegisterChange::default()
             }
         }),
+        0x24 => { //INC H
+            let value = cpu.registers.h + 1;
+
+            inc8_bit(
+                RegisterChange {
+                    h: Option::Some(value),
+                    ..RegisterChange::default()
+                },
+                value == 0,
+                is_half_carry(cpu.registers.h, 1)
+            )
+        },
+        0x26 => ld_immediate(RegisterChange { //LD H, u8
+            h: {
+                let pc = cpu.registers.program_counter;
+
+                Some(cpu.memory[(pc + 1) as usize])
+            },
+            ..RegisterChange::default()
+        }),
+        0x2E => ld_immediate(RegisterChange { //LD L, u8
+            l: {
+                let pc = cpu.registers.program_counter;
+
+                Some(cpu.memory[(pc + 1) as usize])
+            },
+            ..RegisterChange::default()
+        }),
         0x33 => inc16_bit({ //INC SP
             let sp = cpu.registers.stack_pointer + 1;
 
@@ -156,6 +212,24 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..RegisterChange::default()
             }
         }),
+        0x34 => { //INC (HL)
+            let addr = cpu.registers.hl();
+            let value = cpu.memory[addr as usize];
+            let result = value + 1;
+
+            inc_absolute(
+                MemoryChange {
+                    changes: Vec::from([
+                        MemoryEdit {
+                            key: addr,
+                            value: result
+                        }
+                    ])
+                },
+                result == 0,
+                is_half_carry(value, 1)
+            )
+        },
         0x3E => ld_immediate(RegisterChange { //LD A, u8
             a: {
                 let pc = cpu.registers.program_counter;
@@ -201,6 +275,21 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             register: RegisterChange::default(),
             memory: MemoryChange::default()
         }
+    }
+}
+
+fn inc_absolute(change: MemoryChange, set_zero: bool, set_half_carry: bool) -> StateChange {
+    StateChange {
+        byte_length: 1,
+        t_states: 12,
+        flags: FlagChange {
+            zero: Option::Some(set_zero),
+            subtract: Option::Some(false),
+            half_carry: Option::Some(set_half_carry),
+            ..FlagChange::default()
+        },
+        register: RegisterChange::default(),
+        memory: change
     }
 }
 
