@@ -30,7 +30,9 @@ impl CPU {
     }
 
     pub fn status(&self) {
+        println!("\n===CPU STATUS===");
         println!("PC: {}", self.registers.program_counter);
+        println!("SP: {}", self.registers.stack_pointer);
         println!(
             "==REG==\nA: {}, B: {}, C: {}, D: {}, E: {}, F: {}, H: {}, L: {}",
             self.registers.a,

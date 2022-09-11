@@ -1,4 +1,8 @@
-use super::{CPU, registers::to8_bit, flags::is_half_carry};
+use super::{
+    CPU,
+    registers::{to8_bit, to16_bit},
+    flags::is_half_carry
+};
 
 pub struct StateChange {
     pub byte_length: u8,
@@ -72,7 +76,7 @@ impl FlagChange {
 pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
     match op_code {
         0x00 => nop(),
-        0x01 => ld_immediate({ //LD BC, u16
+        0x01 => ld16_immediate({ //LD BC, u16
             let pc = cpu.registers.program_counter;
 
             RegisterChange {
@@ -131,6 +135,15 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             byte_length: 2,
             ..nop()
         },
+        0x11 => ld16_immediate({ //LD DE, u16
+            let pc = cpu.registers.program_counter;
+
+            RegisterChange {
+                d: Some(cpu.memory[(pc + 1) as usize]),
+                e: Some(cpu.memory[(pc + 2) as usize]),
+                ..RegisterChange::default()
+            }
+        }),
         0x13 => inc16_bit({ //INC DE
             let de = cpu.registers.de() + 1;
             let (d, e) = to8_bit(de);
@@ -169,6 +182,15 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             ..RegisterChange::default()
         }),
+        0x21 => ld16_immediate({ //LD HL, u16
+            let pc = cpu.registers.program_counter;
+
+            RegisterChange {
+                h: Some(cpu.memory[(pc + 1) as usize]),
+                l: Some(cpu.memory[(pc + 2) as usize]),
+                ..RegisterChange::default()
+            }
+        }),
         0x23 => inc16_bit({ //INC HL
             let hl = cpu.registers.hl() + 1;
             let (h, l) = to8_bit(hl);
@@ -206,6 +228,17 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 Some(cpu.memory[(pc + 1) as usize])
             },
             ..RegisterChange::default()
+        }),
+        0x31 => ld16_immediate({ //LD SP, u16
+            let pc = cpu.registers.program_counter;
+
+            RegisterChange {
+                sp: Option::Some(to16_bit(
+                    cpu.memory[(pc + 1) as usize],
+                    cpu.memory[(pc + 2) as usize]
+                )),
+                ..RegisterChange::default()
+            }
         }),
         0x33 => inc16_bit({ //INC SP
             let sp = cpu.registers.stack_pointer + 1;
@@ -365,6 +398,16 @@ fn ld_immediate(change: RegisterChange) -> StateChange {
     StateChange {
         byte_length: 2,
         t_states: 8,
+        flags: FlagChange::default(),
+        register: change,
+        memory: MemoryChange::default()
+    }
+}
+
+fn ld16_immediate(change: RegisterChange) -> StateChange {
+    StateChange {
+        byte_length: 3,
+        t_states: 12,
         flags: FlagChange::default(),
         register: change,
         memory: MemoryChange::default()
