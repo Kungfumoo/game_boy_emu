@@ -135,6 +135,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             ..RegisterChange::default()
         }),
+        0x0B => dec16_bit({ //DEC BC
+            let bc = cpu.registers.bc() - 1;
+            let (b, c) = to8_bit(bc);
+
+            RegisterChange {
+                b: Option::Some(b),
+                c: Option::Some(c),
+                ..RegisterChange::default()
+            }
+        }),
         0x0C => { //INC C
             let value = cpu.registers.c + 1;
 
@@ -229,6 +239,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 Some(cpu.memory[(pc + 1) as usize])
             },
             ..RegisterChange::default()
+        }),
+        0x1B => dec16_bit({ //DEC DE
+            let de = cpu.registers.de() - 1;
+            let (d, e) = to8_bit(de);
+
+            RegisterChange {
+                d: Option::Some(d),
+                e: Option::Some(e),
+                ..RegisterChange::default()
+            }
         }),
         0x1C => { //INC E
             let value = cpu.registers.e + 1;
@@ -334,6 +354,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 Some(cpu.memory[(pc + 1) as usize])
             },
             ..RegisterChange::default()
+        }),
+        0x2B => dec16_bit({ //DEC HL
+            let hl = cpu.registers.hl() - 1;
+            let (h, l) = to8_bit(hl);
+
+            RegisterChange {
+                h: Option::Some(h),
+                l: Option::Some(l),
+                ..RegisterChange::default()
+            }
         }),
         0x2C => { //INC L
             let value = cpu.registers.l + 1;
@@ -463,6 +493,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 }
             }
         },
+        0x3B => dec16_bit({ //DEC SP
+            let sp = cpu.registers.stack_pointer - 1;
+
+            RegisterChange {
+                sp: Option::Some(sp),
+                ..RegisterChange::default()
+            }
+        }),
         0x3C => { //INC A
             let value = cpu.registers.a + 1;
 
@@ -571,6 +609,16 @@ fn dec8_bit(change: RegisterChange, set_zero: bool, set_half_carry: bool) -> Sta
             half_carry: Option::Some(set_half_carry),
             ..FlagChange::default()
         },
+        register: change,
+        memory: MemoryChange::default()
+    }
+}
+
+fn dec16_bit(change: RegisterChange) -> StateChange {
+    StateChange {
+        byte_length: 1,
+        t_states: 8,
+        flags: FlagChange::default(),
         register: change,
         memory: MemoryChange::default()
     }
