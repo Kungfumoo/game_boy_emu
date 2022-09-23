@@ -135,6 +135,30 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             ..RegisterChange::default()
         }),
+        0x0C => { //INC C
+            let value = cpu.registers.c + 1;
+
+            inc8_bit(
+                RegisterChange {
+                    c: Option::Some(value),
+                    ..RegisterChange::default()
+                },
+                value == 0,
+                is_half_carry_add(cpu.registers.c, 1)
+            )
+        },
+        0x0D => { //DEC C
+            let value = cpu.registers.c - 1;
+
+            dec8_bit(
+                RegisterChange {
+                    c: Option::Some(value),
+                    ..RegisterChange::default()
+                },
+                value == 0,
+                is_half_carry_subtract(cpu.registers.c, 1)
+            )
+        },
         0x0E => ld_immediate(RegisterChange { //LD C, u8
             c: {
                 let pc = cpu.registers.program_counter;
@@ -206,6 +230,30 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             ..RegisterChange::default()
         }),
+        0x1C => { //INC E
+            let value = cpu.registers.e + 1;
+
+            inc8_bit(
+                RegisterChange {
+                    e: Option::Some(value),
+                    ..RegisterChange::default()
+                },
+                value == 0,
+                is_half_carry_add(cpu.registers.e, 1)
+            )
+        },
+        0x1D => { //DEC E
+            let value = cpu.registers.e - 1;
+
+            dec8_bit(
+                RegisterChange {
+                    e: Option::Some(value),
+                    ..RegisterChange::default()
+                },
+                value == 0,
+                is_half_carry_subtract(cpu.registers.e, 1)
+            )
+        },
         0x1E => ld_immediate(RegisterChange { //LD E, u8
             e: {
                 let pc = cpu.registers.program_counter;
@@ -287,6 +335,30 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             ..RegisterChange::default()
         }),
+        0x2C => { //INC L
+            let value = cpu.registers.l + 1;
+
+            inc8_bit(
+                RegisterChange {
+                    l: Option::Some(value),
+                    ..RegisterChange::default()
+                },
+                value == 0,
+                is_half_carry_add(cpu.registers.l, 1)
+            )
+        },
+        0x2D => { //DEC L
+            let value = cpu.registers.l - 1;
+
+            dec8_bit(
+                RegisterChange {
+                    l: Option::Some(value),
+                    ..RegisterChange::default()
+                },
+                value == 0,
+                is_half_carry_subtract(cpu.registers.l, 1)
+            )
+        },
         0x2E => ld_immediate(RegisterChange { //LD L, u8
             l: {
                 let pc = cpu.registers.program_counter;
@@ -390,6 +462,30 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                     ])
                 }
             }
+        },
+        0x3C => { //INC A
+            let value = cpu.registers.a + 1;
+
+            inc8_bit(
+                RegisterChange {
+                    a: Option::Some(value),
+                    ..RegisterChange::default()
+                },
+                value == 0,
+                is_half_carry_add(cpu.registers.a, 1)
+            )
+        },
+        0x3D => { //DEC A
+            let value = cpu.registers.a - 1;
+
+            dec8_bit(
+                RegisterChange {
+                    a: Option::Some(value),
+                    ..RegisterChange::default()
+                },
+                value == 0,
+                is_half_carry_subtract(cpu.registers.a, 1)
+            )
         },
         0x3E => ld_immediate(RegisterChange { //LD A, u8
             a: {
