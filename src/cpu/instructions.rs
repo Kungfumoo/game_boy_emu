@@ -1,7 +1,7 @@
 use super::{
     CPU,
     registers::{to8_bit, to16_bit},
-    flags::is_half_carry
+    flags::{is_half_carry_add, is_half_carry_subtract}
 };
 
 pub struct StateChange {
@@ -112,7 +112,19 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                     ..RegisterChange::default()
                 },
                 value == 0,
-                is_half_carry(cpu.registers.b, 1)
+                is_half_carry_add(cpu.registers.b, 1)
+            )
+        },
+        0x05 => { //DEC B
+            let value = cpu.registers.b - 1;
+
+            dec8_bit(
+                RegisterChange {
+                    b: Option::Some(value),
+                    ..RegisterChange::default()
+                },
+                value == 0,
+                is_half_carry_subtract(cpu.registers.b, 1)
             )
         },
         0x06 => ld_immediate(RegisterChange { //LD B, u8
@@ -171,7 +183,19 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                     ..RegisterChange::default()
                 },
                 value == 0,
-                is_half_carry(cpu.registers.d, 1)
+                is_half_carry_add(cpu.registers.d, 1)
+            )
+        },
+        0x15 => { //DEC D
+            let value = cpu.registers.d - 1;
+
+            dec8_bit(
+                RegisterChange {
+                    d: Option::Some(value),
+                    ..RegisterChange::default()
+                },
+                value == 0,
+                is_half_carry_subtract(cpu.registers.d, 1)
             )
         },
         0x16 => ld_immediate(RegisterChange { //LD D, u8
@@ -240,7 +264,19 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                     ..RegisterChange::default()
                 },
                 value == 0,
-                is_half_carry(cpu.registers.h, 1)
+                is_half_carry_add(cpu.registers.h, 1)
+            )
+        },
+        0x25 => { //DEC H
+            let value = cpu.registers.h - 1;
+
+            dec8_bit(
+                RegisterChange {
+                    h: Option::Some(value),
+                    ..RegisterChange::default()
+                },
+                value == 0,
+                is_half_carry_subtract(cpu.registers.h, 1)
             )
         },
         0x26 => ld_immediate(RegisterChange { //LD H, u8
@@ -315,7 +351,25 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                     ])
                 },
                 result == 0,
-                is_half_carry(value, 1)
+                is_half_carry_add(value, 1)
+            )
+        },
+        0x35 => { //DEC (HL)
+            let addr = cpu.registers.hl();
+            let value = cpu.memory[addr as usize];
+            let result = value - 1;
+
+            dec_absolute(
+                MemoryChange {
+                    changes: Vec::from([
+                        MemoryEdit {
+                            key: addr,
+                            value: result
+                        }
+                    ])
+                },
+                result == 0,
+                is_half_carry_subtract(value, 1)
             )
         },
         0x36 => { //LD (HL), u8
@@ -393,6 +447,36 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             register: RegisterChange::default(),
             memory: MemoryChange::default()
         }
+    }
+}
+
+fn dec_absolute(change: MemoryChange, set_zero: bool, set_half_carry: bool) -> StateChange {
+    StateChange {
+        byte_length: 1,
+        t_states: 12,
+        flags: FlagChange {
+            zero: Option::Some(set_zero),
+            subtract: Option::Some(true),
+            half_carry: Option::Some(set_half_carry),
+            ..FlagChange::default()
+        },
+        register: RegisterChange::default(),
+        memory: change
+    }
+}
+
+fn dec8_bit(change: RegisterChange, set_zero: bool, set_half_carry: bool) -> StateChange {
+    StateChange {
+        byte_length: 1,
+        t_states: 4,
+        flags: FlagChange {
+            zero: Option::Some(set_zero),
+            subtract: Option::Some(true),
+            half_carry: Option::Some(set_half_carry),
+            ..FlagChange::default()
+        },
+        register: change,
+        memory: MemoryChange::default()
     }
 }
 
