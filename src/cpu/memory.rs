@@ -36,3 +36,16 @@ impl Memory {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_write() {
+        let mut memory = Memory::new();
+
+        memory[0x01] = 10;
+        assert_eq!(memory[0x01], 10);
+    }
+}

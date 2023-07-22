@@ -1,4 +1,30 @@
-use super::instructions::RegisterChange;
+pub struct RegisterChange {
+    pub sp: Option<u16>,
+    pub a: Option<u8>,
+    pub b: Option<u8>,
+    pub c: Option<u8>,
+    pub d: Option<u8>,
+    pub e: Option<u8>,
+    pub f: Option<u8>,
+    pub h: Option<u8>,
+    pub l: Option<u8>
+}
+
+impl RegisterChange {
+    pub fn default() -> RegisterChange {
+        RegisterChange {
+            sp: Option::None,
+            a: Option::None,
+            b: Option::None,
+            c: Option::None,
+            d: Option::None,
+            e: Option::None,
+            f: Option::None,
+            h: Option::None,
+            l: Option::None
+        }
+    }
+}
 
 pub struct Registers {
     pub program_counter: u16,
@@ -97,4 +123,79 @@ pub fn to8_bit(value: u16) -> (u8, u8) {
     let right: u8 = (value & 0xFF) as u8;
 
     (left, right)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_change() {
+        let mut registers = Registers::new();
+
+        registers.update(&RegisterChange {
+            b: Some(0x04),
+            c: Some(0x07),
+            ..RegisterChange::default()
+        });
+
+        assert_eq!(registers.b, 0x04);
+        assert_eq!(registers.c, 0x07);
+    }
+
+    #[test]
+    fn test_af() {
+        let mut registers = Registers::new();
+
+        registers.a = 0x01;
+        registers.f = 0x0f;
+
+        assert_eq!(registers.af(), 0x010f);
+    }
+
+    #[test]
+    fn test_bc() {
+        let mut registers = Registers::new();
+
+        registers.b = 0x01;
+        registers.c = 0x0f;
+
+        assert_eq!(registers.bc(), 0x010f);
+    }
+
+    #[test]
+    fn test_de() {
+        let mut registers = Registers::new();
+
+        registers.d = 0x01;
+        registers.e = 0x0f;
+
+        assert_eq!(registers.de(), 0x010f);
+    }
+
+    #[test]
+    fn test_hl() {
+        let mut registers = Registers::new();
+
+        registers.h = 0x01;
+        registers.l = 0x0f;
+
+        assert_eq!(registers.hl(), 0x010f);
+    }
+
+    #[test]
+    fn test_to16_bit() {
+        assert_eq!(
+            to16_bit(0x01, 0x0A),
+            0x010A
+        );
+    }
+
+    #[test]
+    fn test_to8_bit() {
+        let (left, right) = to8_bit(0x010A);
+
+        assert_eq!(0x01, left);
+        assert_eq!(0x0A, right);
+    }
 }

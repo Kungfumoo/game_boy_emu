@@ -1,6 +1,6 @@
 use super::{
     CPU,
-    registers::{to8_bit, to16_bit},
+    registers::{to8_bit, to16_bit, RegisterChange},
     flags::{is_half_carry_add, is_half_carry_subtract}
 };
 
@@ -24,34 +24,6 @@ pub struct MemoryChange {
 impl MemoryChange {
     fn default() -> MemoryChange {
         MemoryChange { changes: Vec::new() }
-    }
-}
-
-pub struct RegisterChange {
-    pub sp: Option<u16>,
-    pub a: Option<u8>,
-    pub b: Option<u8>,
-    pub c: Option<u8>,
-    pub d: Option<u8>,
-    pub e: Option<u8>,
-    pub f: Option<u8>,
-    pub h: Option<u8>,
-    pub l: Option<u8>
-}
-
-impl RegisterChange {
-    fn default() -> RegisterChange {
-        RegisterChange {
-            sp: Option::None,
-            a: Option::None,
-            b: Option::None,
-            c: Option::None,
-            d: Option::None,
-            e: Option::None,
-            f: Option::None,
-            h: Option::None,
-            l: Option::None
-        }
     }
 }
 
