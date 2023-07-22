@@ -9,6 +9,10 @@ mod registers;
 mod flags;
 mod memory;
 
+#[cfg(test)]
+#[path = "./cpu_test.rs"]
+mod cpu_test;
+
 pub struct CPU {
     memory: Memory,
     registers: Registers,

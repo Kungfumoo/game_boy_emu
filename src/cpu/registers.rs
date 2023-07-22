@@ -30,6 +30,7 @@ impl Registers {
     }
 
     pub fn update(&mut self, change: &RegisterChange) {
+        //if change.sp enum value is 'Some' then update stack pointer with attached value
         if let Some(value) = change.sp {
             self.stack_pointer = value;
         }

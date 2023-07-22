@@ -1,4 +1,4 @@
-use std::ops::{Index, IndexMut};
+use std::ops::{Index, IndexMut}; //https://doc.rust-lang.org/std/ops/trait.Index.html
 use super::instructions::MemoryChange;
 
 pub const MEMORY_SIZE: usize = 65536;
@@ -7,6 +7,7 @@ pub struct Memory {
     memory: [u8; MEMORY_SIZE],
 }
 
+//allows read for Memory[index]
 impl Index<usize> for Memory {
     type Output = u8;
 
@@ -15,6 +16,7 @@ impl Index<usize> for Memory {
     }
 }
 
+//allows write for Memory[index]
 impl IndexMut<usize> for Memory {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.memory[index]

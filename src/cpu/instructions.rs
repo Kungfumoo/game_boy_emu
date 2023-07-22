@@ -73,6 +73,9 @@ impl FlagChange {
     }
 }
 
+//How to interpret instruction comments:
+//INC A = Increment the value in register A
+//INC (A) = Increment the value at the memory address that the A register contains.
 pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
     match op_code {
         0x00 => nop(),
