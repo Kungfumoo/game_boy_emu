@@ -1,7 +1,21 @@
 use std::ops::{Index, IndexMut}; //https://doc.rust-lang.org/std/ops/trait.Index.html
-use super::instructions::MemoryChange;
 
 pub const MEMORY_SIZE: usize = 65536;
+
+pub struct MemoryEdit {
+    pub key: u16,
+    pub value: u8
+}
+
+pub struct MemoryChange {
+    pub changes: Vec<MemoryEdit>
+}
+
+impl MemoryChange {
+    pub fn default() -> MemoryChange {
+        MemoryChange { changes: Vec::new() }
+    }
+}
 
 pub struct Memory {
     memory: [u8; MEMORY_SIZE],
@@ -47,5 +61,19 @@ mod tests {
 
         memory[0x01] = 10;
         assert_eq!(memory[0x01], 10);
+    }
+
+    #[test]
+    fn test_update() {
+        let mut memory = Memory::new();
+
+        memory.update(&MemoryChange {
+            changes: vec![MemoryEdit {
+                key: 0x01,
+                value: 0x0A
+            }]
+        });
+
+        assert_eq!(memory[0x01], 0x0A);
     }
 }

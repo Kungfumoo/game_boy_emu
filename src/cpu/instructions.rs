@@ -1,7 +1,8 @@
 use super::{
     CPU,
     registers::{to8_bit, to16_bit, RegisterChange},
-    flags::{is_half_carry_add, is_half_carry_subtract}
+    flags::{is_half_carry_add, is_half_carry_subtract},
+    memory::{MemoryChange, MemoryEdit}
 };
 
 pub struct StateChange {
@@ -10,21 +11,6 @@ pub struct StateChange {
     pub flags: FlagChange,
     pub register: RegisterChange,
     pub memory: MemoryChange
-}
-
-pub struct MemoryEdit {
-    pub key: u16,
-    pub value: u8
-}
-
-pub struct MemoryChange {
-    pub changes: Vec<MemoryEdit>
-}
-
-impl MemoryChange {
-    fn default() -> MemoryChange {
-        MemoryChange { changes: Vec::new() }
-    }
 }
 
 pub struct FlagChange {
