@@ -141,6 +141,7 @@ mod tests {
 
         assert_eq!(registers.b, 0x04);
         assert_eq!(registers.c, 0x07);
+        assert_eq!(registers.a, 0x00);
     }
 
     #[test]

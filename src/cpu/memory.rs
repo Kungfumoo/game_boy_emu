@@ -75,5 +75,6 @@ mod tests {
         });
 
         assert_eq!(memory[0x01], 0x0A);
+        assert_eq!(memory[0x02], 0x00);
     }
 }

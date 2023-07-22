@@ -1,7 +1,7 @@
 use super::{
     CPU,
     registers::{to8_bit, to16_bit, RegisterChange},
-    flags::{is_half_carry_add, is_half_carry_subtract},
+    flags::{is_half_carry_add, is_half_carry_subtract, FlagChange},
     memory::{MemoryChange, MemoryEdit}
 };
 
@@ -11,24 +11,6 @@ pub struct StateChange {
     pub flags: FlagChange,
     pub register: RegisterChange,
     pub memory: MemoryChange
-}
-
-pub struct FlagChange {
-    pub zero: Option<bool>,
-    pub subtract: Option<bool>,
-    pub half_carry: Option<bool>,
-    pub carry: Option<bool>
-}
-
-impl FlagChange {
-    fn default() -> FlagChange {
-        FlagChange {
-            zero: Option::None,
-            subtract: Option::None,
-            half_carry: Option::None,
-            carry: Option::None
-        }
-    }
 }
 
 //How to interpret instruction comments:
