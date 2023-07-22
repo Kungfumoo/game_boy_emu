@@ -89,7 +89,7 @@ impl CPU {
         let pc_increment: &u16 = &change.byte_length.into();
         self.registers.program_counter += pc_increment;
 
-        //TODO: t states
+        //TODO: t states - according to this article: https://forums.nesdev.org/viewtopic.php?t=14014 we may not need to care
 
         self.registers.update(&change.register);
         self.flags.update(&change.flags);

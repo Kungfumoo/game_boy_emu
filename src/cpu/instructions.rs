@@ -103,7 +103,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             RegisterChange {
                 b: Option::Some(b),
                 c: Option::Some(c),
-                ..RegisterChange::default()
+                ..RegisterChange::default() //NOTE: it does NOT set the status registers, not a bug.
             }
         }),
         0x04 => { //INC B
