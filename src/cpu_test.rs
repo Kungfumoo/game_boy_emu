@@ -128,6 +128,25 @@ fn test_0x08() { //LD [n16], SP
 }
 
 #[test]
+fn test_0x09() { //ADD HL, BC
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.subtract = true;
+
+    cpu.registers.b = 0xA0;
+    cpu.registers.c = 0xAF;
+    cpu.registers.h = 0x00;
+    cpu.registers.l = 0x01;
+
+    cpu.execute(0x09);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0xA0, cpu.registers.h);
+    assert_eq!(0xB0, cpu.registers.l);
+    assert!(!cpu.flags.subtract);
+}
+
+#[test]
 fn test_0x21() { //LD HL, u16
     let mut cpu = prepare_cpu();
 

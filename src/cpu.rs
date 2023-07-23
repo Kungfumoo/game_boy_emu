@@ -8,6 +8,7 @@ mod instructions;
 mod registers;
 mod flags;
 mod memory;
+mod util;
 
 #[cfg(test)]
 #[path = "./cpu_test.rs"]

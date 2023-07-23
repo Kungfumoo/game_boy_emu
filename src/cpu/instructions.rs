@@ -1,5 +1,3 @@
-use std::num::Wrapping;
-
 use super::{
     CPU,
     registers::{to8_bit, to16_bit, RegisterChange},
@@ -8,7 +6,11 @@ use super::{
         is_half_carry_add, is_half_carry_subtract,
         is_carry_add_16, is_half_carry_add_16
     },
-    memory::{MemoryChange, MemoryEdit}
+    memory::{MemoryChange, MemoryEdit},
+    util::{
+        add16_bit, sub16_bit,
+        add8_bit, sub8_bit
+    }
 };
 
 pub struct StateChange {
@@ -744,67 +746,5 @@ fn nop() -> StateChange {
         flags: FlagChange::default(),
         register: RegisterChange::default(),
         memory: MemoryChange::default()
-    }
-}
-
-//Below adders and subtracters make use of Wrapping to safely handle overflows without the program crashing
-fn add8_bit(a: u8, b: u8) -> u8 {
-    let a = Wrapping(a);
-    let b = Wrapping(b);
-
-    (a + b).0
-}
-
-fn add16_bit(a: u16, b: u16) -> u16 {
-    let a = Wrapping(a);
-    let b = Wrapping(b);
-
-    (a + b).0
-}
-
-fn sub8_bit(a: u8, b: u8) -> u8 {
-    let a = Wrapping(a);
-    let b = Wrapping(b);
-
-    (a - b).0
-}
-
-fn sub16_bit(a: u16, b: u16) -> u16 {
-    let a = Wrapping(a);
-    let b = Wrapping(b);
-
-    (a - b).0
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_add8_bit() {
-        let result = add8_bit(0xFF, 0x03);
-
-        assert_eq!(0x02, result);
-    }
-
-    #[test]
-    fn test_add16_bit() {
-        let result = add16_bit(0xFFFF, 0x03);
-
-        assert_eq!(0x02, result);
-    }
-
-    #[test]
-    fn test_sub8_bit() {
-        let result = sub8_bit(0x00, 0x01);
-
-        assert_eq!(0xFF, result);
-    }
-
-    #[test]
-    fn test_sub16_bit() {
-        let result = sub16_bit(0x00, 0x01);
-
-        assert_eq!(0xFFFF, result);
     }
 }
