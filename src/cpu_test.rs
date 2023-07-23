@@ -78,11 +78,13 @@ fn test_0x04() { //INC B
 fn test_0x05() { //DEC B
     let mut cpu = prepare_cpu();
 
-    cpu.registers.b = 5;
+    cpu.registers.b = 1;
     cpu.execute(0x05);
 
     assert_eq!(1, cpu.registers.program_counter);
-    assert_eq!(4, cpu.registers.b);
+    assert_eq!(0, cpu.registers.b);
+    assert!(cpu.flags.zero);
+    assert!(cpu.flags.subtract);
 }
 
 #[test]
@@ -111,6 +113,18 @@ fn test_0x07() { //RLCA
 
     assert_eq!(0xFE, cpu.registers.a);
     assert!(!cpu.flags.carry);
+}
+
+#[test]
+fn test_0x08() { //LD [n16], SP
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0xC001;
+    cpu.execute_with_args(0x08, Some(vec![0xA1, 0xFF]));
+
+    assert_eq!(3, cpu.registers.program_counter);
+    assert_eq!(0xC0, cpu.memory[0xA1FF]);
+    assert_eq!(0x01, cpu.memory[0xA1FF + 1]);
 }
 
 #[test]

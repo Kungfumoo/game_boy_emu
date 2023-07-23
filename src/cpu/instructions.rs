@@ -91,6 +91,34 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 (a & 0x01) == 0x01 //check rightmost bit
             )
         },
+        0x08 => StateChange { //LD [n16], SP (load stack pointer into memory)
+            byte_length: 3,
+            t_states: 20,
+            flags: FlagChange::default(),
+            register: RegisterChange::default(),
+            memory: {
+                let pc = cpu.registers.program_counter;
+                let addr = to16_bit(
+                    cpu.memory[add16_bit(pc, 1) as usize],
+                    cpu.memory[add16_bit(pc, 2) as usize]
+                );
+
+                let (left, right) = to8_bit(cpu.registers.stack_pointer);
+
+                MemoryChange {
+                    changes: vec![
+                        MemoryEdit {
+                            key: addr,
+                            value: left
+                        },
+                        MemoryEdit {
+                            key: add16_bit(addr, 1),
+                            value: right
+                        }
+                    ]
+                }
+            }
+        },
         0x0B => dec16_bit({ //DEC BC
             let bc = sub16_bit(cpu.registers.bc(), 1);
             let (b, c) = to8_bit(bc);
