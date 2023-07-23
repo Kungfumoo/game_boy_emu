@@ -78,6 +78,17 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             ..RegisterChange::default()
         }),
+        0x07 => { //RLCA (rotate register A left)
+            let a = cpu.registers.a.rotate_left(1);
+
+            rotate_register(
+                RegisterChange {
+                    a: Some(a),
+                    ..RegisterChange::default()
+                },
+                (a & 0x01) == 0x01 //check rightmost bit
+            )
+        },
         0x0B => dec16_bit({ //DEC BC
             let bc = cpu.registers.bc() - 1;
             let (b, c) = to8_bit(bc);
@@ -642,6 +653,19 @@ fn ld_register_to_register(change: RegisterChange) -> StateChange {
         byte_length: 1,
         t_states: 4,
         flags: FlagChange::default(),
+        register: change,
+        memory: MemoryChange::default()
+    }
+}
+
+fn rotate_register(change: RegisterChange, set_carry: bool) -> StateChange {
+    StateChange {
+        byte_length: 1,
+        t_states: 4,
+        flags: FlagChange {
+            carry: Some(set_carry),
+            ..FlagChange::reset()
+        },
         register: change,
         memory: MemoryChange::default()
     }

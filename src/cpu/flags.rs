@@ -14,6 +14,15 @@ impl FlagChange {
             carry: Option::None
         }
     }
+
+    pub fn reset() -> FlagChange {
+        FlagChange {
+            zero: Option::Some(false),
+            subtract: Option::Some(false),
+            half_carry: Option::Some(false),
+            carry: Option::Some(false),
+        }
+    }
 }
 
 pub struct Flags {
@@ -74,6 +83,21 @@ mod tests {
         });
 
         assert_eq!(flags.zero, true);
+        assert_eq!(flags.subtract, false);
+    }
+
+    #[test]
+    fn test_reset() {
+        let mut flags = Flags {
+            zero: true,
+            subtract: false,
+            half_carry: false,
+            carry: false
+        };
+
+        flags.update(&FlagChange::reset());
+
+        assert_eq!(flags.zero, false);
         assert_eq!(flags.subtract, false);
     }
 

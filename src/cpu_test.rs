@@ -10,6 +10,15 @@ fn prepare_cpu() -> CPU {
 }
 
 #[test]
+fn test_0x00() { //nop
+    let mut cpu = prepare_cpu();
+
+    cpu.execute(0x00);
+
+    assert_eq!(1, cpu.registers.program_counter);
+}
+
+#[test]
 fn test_0x01() { //LD BC, u16
     let mut cpu = prepare_cpu();
 
@@ -67,12 +76,31 @@ fn test_0x05() { //DEC B
 }
 
 #[test]
-fn test_nop() {
+fn test_0x06() { //LD B, u8
     let mut cpu = prepare_cpu();
 
-    cpu.execute(0x00);
+    cpu.execute_with_args(0x06, Option::Some(vec![0x0A]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0x0A, cpu.registers.b);
+}
+
+#[test]
+fn test_0x07() { //RLCA
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0x85;
+    cpu.execute(0x07);
 
     assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x0B, cpu.registers.a);
+    assert!(cpu.flags.carry);
+
+    cpu.registers.a = 0x7F;
+    cpu.execute(0x07);
+
+    assert_eq!(0xFE, cpu.registers.a);
+    assert!(!cpu.flags.carry);
 }
 
 #[test]
