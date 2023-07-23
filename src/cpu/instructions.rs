@@ -126,8 +126,8 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         },
         0x09 => add_to_hl( //ADD HL, BC
-            cpu.registers.bc(),
-            cpu
+            cpu.registers.hl(),
+            cpu.registers.bc()
         ),
         0x0B => dec16_bit({ //DEC BC
             let bc = sub16_bit(cpu.registers.bc(), 1);
@@ -580,21 +580,19 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
     }
 }
 
-fn add_to_hl(operand: u16, cpu: &CPU) -> StateChange {
-    let hl = cpu.registers.hl();
-
+fn add_to_hl(hlValue: u16, operand: u16) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 8,
         flags: FlagChange {
             subtract: Some(false),
-            carry: Some(is_carry_add_16(hl, operand)),
-            half_carry: Some(is_half_carry_add_16(hl, operand)),
+            carry: Some(is_carry_add_16(hlValue, operand)),
+            half_carry: Some(is_half_carry_add_16(hlValue, operand)),
             ..FlagChange::default()
         },
         memory: MemoryChange::default(),
         register: {
-            let (h, l) = to8_bit(add16_bit(hl, operand));
+            let (h, l) = to8_bit(add16_bit(hlValue, operand));
 
             RegisterChange {
                 h: Some(h),
