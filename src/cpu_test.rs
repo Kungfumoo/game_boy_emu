@@ -57,11 +57,21 @@ fn test_0x03() { //INC BC
 fn test_0x04() { //INC B
     let mut cpu = prepare_cpu();
 
+    cpu.flags.subtract = true;
     cpu.registers.b = 5;
     cpu.execute(0x04);
 
     assert_eq!(1, cpu.registers.program_counter);
     assert_eq!(6, cpu.registers.b);
+    assert!(!cpu.flags.subtract);
+    assert!(!cpu.flags.zero);
+    assert!(!cpu.flags.half_carry);
+
+    cpu.registers.b = 255;
+    cpu.execute(0x04);
+
+    assert_eq!(0, cpu.registers.b);
+    assert!(cpu.flags.zero);
 }
 
 #[test]

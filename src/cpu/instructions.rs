@@ -1,3 +1,5 @@
+use std::num::Wrapping;
+
 use super::{
     CPU,
     registers::{to8_bit, to16_bit, RegisterChange},
@@ -23,8 +25,8 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let pc = cpu.registers.program_counter;
 
             RegisterChange {
-                b: Some(cpu.memory[(pc + 1) as usize]),
-                c: Some(cpu.memory[(pc + 2) as usize]),
+                b: Some(cpu.memory[add16_bit(pc, 1) as usize]),
+                c: Some(cpu.memory[add16_bit(pc, 2) as usize]),
                 ..RegisterChange::default()
             }
         }),
@@ -37,7 +39,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             ])
         }),
         0x03 => inc16_bit({ //INC BC
-            let bc = cpu.registers.bc() + 1;
+            let bc = add16_bit(cpu.registers.bc(), 1);
             let (b, c) = to8_bit(bc);
 
             RegisterChange {
@@ -47,7 +49,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         }),
         0x04 => { //INC B
-            let value = cpu.registers.b + 1;
+            let value = add8_bit(cpu.registers.b, 1);
 
             inc8_bit(
                 RegisterChange {
@@ -59,7 +61,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0x05 => { //DEC B
-            let value = cpu.registers.b - 1;
+            let value = sub8_bit(cpu.registers.b, 1);
 
             dec8_bit(
                 RegisterChange {
@@ -74,7 +76,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             b: {
                 let pc = cpu.registers.program_counter;
 
-                Some(cpu.memory[(pc + 1) as usize])
+                Some(cpu.memory[add16_bit(pc, 1) as usize])
             },
             ..RegisterChange::default()
         }),
@@ -90,7 +92,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0x0B => dec16_bit({ //DEC BC
-            let bc = cpu.registers.bc() - 1;
+            let bc = sub16_bit(cpu.registers.bc(), 1);
             let (b, c) = to8_bit(bc);
 
             RegisterChange {
@@ -100,7 +102,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         }),
         0x0C => { //INC C
-            let value = cpu.registers.c + 1;
+            let value = add8_bit(cpu.registers.c, 1);
 
             inc8_bit(
                 RegisterChange {
@@ -112,7 +114,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0x0D => { //DEC C
-            let value = cpu.registers.c - 1;
+            let value = sub8_bit(cpu.registers.c, 1);
 
             dec8_bit(
                 RegisterChange {
@@ -127,7 +129,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             c: {
                 let pc = cpu.registers.program_counter;
 
-                Some(cpu.memory[(pc + 1) as usize])
+                Some(cpu.memory[add16_bit(pc, 1) as usize])
             },
             ..RegisterChange::default()
         }),
@@ -139,8 +141,8 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let pc = cpu.registers.program_counter;
 
             RegisterChange {
-                d: Some(cpu.memory[(pc + 1) as usize]),
-                e: Some(cpu.memory[(pc + 2) as usize]),
+                d: Some(cpu.memory[add16_bit(pc, 1) as usize]),
+                e: Some(cpu.memory[add16_bit(pc, 2) as usize]),
                 ..RegisterChange::default()
             }
         }),
@@ -153,7 +155,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             ])
         }),
         0x13 => inc16_bit({ //INC DE
-            let de = cpu.registers.de() + 1;
+            let de = add16_bit(cpu.registers.de(), 1);
             let (d, e) = to8_bit(de);
 
             RegisterChange {
@@ -163,7 +165,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         }),
         0x14 => { //INC D
-            let value = cpu.registers.d + 1;
+            let value = add8_bit(cpu.registers.d, 1);
 
             inc8_bit(
                 RegisterChange {
@@ -175,7 +177,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0x15 => { //DEC D
-            let value = cpu.registers.d - 1;
+            let value = sub8_bit(cpu.registers.d, 1);
 
             dec8_bit(
                 RegisterChange {
@@ -190,12 +192,12 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             d: {
                 let pc = cpu.registers.program_counter;
 
-                Some(cpu.memory[(pc + 1) as usize])
+                Some(cpu.memory[add16_bit(pc, 1) as usize])
             },
             ..RegisterChange::default()
         }),
         0x1B => dec16_bit({ //DEC DE
-            let de = cpu.registers.de() - 1;
+            let de = sub16_bit(cpu.registers.de(), 1);
             let (d, e) = to8_bit(de);
 
             RegisterChange {
@@ -205,7 +207,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         }),
         0x1C => { //INC E
-            let value = cpu.registers.e + 1;
+            let value = add8_bit(cpu.registers.e, 1);
 
             inc8_bit(
                 RegisterChange {
@@ -217,7 +219,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0x1D => { //DEC E
-            let value = cpu.registers.e - 1;
+            let value = sub8_bit(cpu.registers.e, 1);
 
             dec8_bit(
                 RegisterChange {
@@ -232,7 +234,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             e: {
                 let pc = cpu.registers.program_counter;
 
-                Some(cpu.memory[(pc + 1) as usize])
+                Some(cpu.memory[add16_bit(pc, 1) as usize])
             },
             ..RegisterChange::default()
         }),
@@ -240,8 +242,8 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let pc = cpu.registers.program_counter;
 
             RegisterChange {
-                h: Some(cpu.memory[(pc + 1) as usize]),
-                l: Some(cpu.memory[(pc + 2) as usize]),
+                h: Some(cpu.memory[add16_bit(pc, 1) as usize]),
+                l: Some(cpu.memory[add16_bit(pc, 2) as usize]),
                 ..RegisterChange::default()
             }
         }),
@@ -256,7 +258,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ])
             });
 
-            let (h, l) = to8_bit(addr + 1);
+            let (h, l) = to8_bit(add16_bit(addr, 1));
 
             StateChange {
                 register: RegisterChange {
@@ -268,7 +270,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         },
         0x23 => inc16_bit({ //INC HL
-            let hl = cpu.registers.hl() + 1;
+            let hl = add16_bit(cpu.registers.hl(), 1);
             let (h, l) = to8_bit(hl);
 
             RegisterChange {
@@ -278,7 +280,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         }),
         0x24 => { //INC H
-            let value = cpu.registers.h + 1;
+            let value = add8_bit(cpu.registers.h, 1);
 
             inc8_bit(
                 RegisterChange {
@@ -290,7 +292,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0x25 => { //DEC H
-            let value = cpu.registers.h - 1;
+            let value = sub8_bit(cpu.registers.h, 1);
 
             dec8_bit(
                 RegisterChange {
@@ -305,12 +307,12 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             h: {
                 let pc = cpu.registers.program_counter;
 
-                Some(cpu.memory[(pc + 1) as usize])
+                Some(cpu.memory[add16_bit(pc, 1) as usize])
             },
             ..RegisterChange::default()
         }),
         0x2B => dec16_bit({ //DEC HL
-            let hl = cpu.registers.hl() - 1;
+            let hl = sub16_bit(cpu.registers.hl(), 1);
             let (h, l) = to8_bit(hl);
 
             RegisterChange {
@@ -320,7 +322,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         }),
         0x2C => { //INC L
-            let value = cpu.registers.l + 1;
+            let value = add8_bit(cpu.registers.l, 1);
 
             inc8_bit(
                 RegisterChange {
@@ -332,7 +334,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0x2D => { //DEC L
-            let value = cpu.registers.l - 1;
+            let value = sub8_bit(cpu.registers.l, 1);
 
             dec8_bit(
                 RegisterChange {
@@ -347,7 +349,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             l: {
                 let pc = cpu.registers.program_counter;
 
-                Some(cpu.memory[(pc + 1) as usize])
+                Some(cpu.memory[add16_bit(pc, 1) as usize])
             },
             ..RegisterChange::default()
         }),
@@ -356,8 +358,8 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             RegisterChange {
                 sp: Option::Some(to16_bit(
-                    cpu.memory[(pc + 1) as usize],
-                    cpu.memory[(pc + 2) as usize]
+                    cpu.memory[add16_bit(pc, 1) as usize],
+                    cpu.memory[add16_bit(pc, 2) as usize]
                 )),
                 ..RegisterChange::default()
             }
@@ -373,7 +375,9 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ])
             });
 
-            let (h, l) = to8_bit(addr - 1);
+            let (h, l) = to8_bit(
+                sub16_bit(addr, 1)
+            );
 
             StateChange {
                 register: RegisterChange {
@@ -385,7 +389,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         },
         0x33 => inc16_bit({ //INC SP
-            let sp = cpu.registers.stack_pointer + 1;
+            let sp = add16_bit(cpu.registers.stack_pointer, 1);
 
             RegisterChange {
                 sp: Option::Some(sp),
@@ -395,7 +399,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x34 => { //INC (HL)
             let addr = cpu.registers.hl();
             let value = cpu.memory[addr as usize];
-            let result = value + 1;
+            let result = add8_bit(value, 1);
 
             inc_absolute(
                 MemoryChange {
@@ -413,7 +417,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x35 => { //DEC (HL)
             let addr = cpu.registers.hl();
             let value = cpu.memory[addr as usize];
-            let result = value - 1;
+            let result = sub8_bit(value, 1);
 
             dec_absolute(
                 MemoryChange {
@@ -430,7 +434,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         },
         0x36 => { //LD (HL), u8
             let pc = cpu.registers.program_counter;
-            let arg = cpu.memory[(pc + 1) as usize];
+            let arg = cpu.memory[add16_bit(pc, 1) as usize];
 
             StateChange {
                 byte_length: 2,
@@ -448,7 +452,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         },
         0x3B => dec16_bit({ //DEC SP
-            let sp = cpu.registers.stack_pointer - 1;
+            let sp = sub16_bit(cpu.registers.stack_pointer, 1);
 
             RegisterChange {
                 sp: Option::Some(sp),
@@ -456,7 +460,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         }),
         0x3C => { //INC A
-            let value = cpu.registers.a + 1;
+            let value = add8_bit(cpu.registers.a, 1);
 
             inc8_bit(
                 RegisterChange {
@@ -468,7 +472,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0x3D => { //DEC A
-            let value = cpu.registers.a - 1;
+            let value = sub8_bit(cpu.registers.a, 1);
 
             dec8_bit(
                 RegisterChange {
@@ -483,7 +487,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             a: {
                 let pc = cpu.registers.program_counter;
 
-                Some(cpu.memory[(pc + 1) as usize])
+                Some(cpu.memory[add16_bit(pc, 1) as usize])
             },
             ..RegisterChange::default()
         }),
@@ -679,5 +683,67 @@ fn nop() -> StateChange {
         flags: FlagChange::default(),
         register: RegisterChange::default(),
         memory: MemoryChange::default()
+    }
+}
+
+//Below adders and subtracters make use of Wrapping to safely handle overflows without the program crashing
+fn add8_bit(a: u8, b: u8) -> u8 {
+    let a = Wrapping(a);
+    let b = Wrapping(b);
+
+    (a + b).0
+}
+
+fn add16_bit(a: u16, b: u16) -> u16 {
+    let a = Wrapping(a);
+    let b = Wrapping(b);
+
+    (a + b).0
+}
+
+fn sub8_bit(a: u8, b: u8) -> u8 {
+    let a = Wrapping(a);
+    let b = Wrapping(b);
+
+    (a - b).0
+}
+
+fn sub16_bit(a: u16, b: u16) -> u16 {
+    let a = Wrapping(a);
+    let b = Wrapping(b);
+
+    (a - b).0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add8_bit() {
+        let result = add8_bit(0xFF, 0x03);
+
+        assert_eq!(0x02, result);
+    }
+
+    #[test]
+    fn test_add16_bit() {
+        let result = add16_bit(0xFFFF, 0x03);
+
+        assert_eq!(0x02, result);
+    }
+
+    #[test]
+    fn test_sub8_bit() {
+        let result = sub8_bit(0x00, 0x01);
+
+        assert_eq!(0xFF, result);
+    }
+
+    #[test]
+    fn test_sub16_bit() {
+        let result = sub16_bit(0x00, 0x01);
+
+        assert_eq!(0xFFFF, result);
     }
 }
