@@ -64,6 +64,48 @@ pub fn is_half_carry_subtract(a: u8, b: u8) -> bool {
     (a - b) & 0x10 == 0x10
 }
 
+pub fn is_carry_add(a: u8, b: u8) -> bool {
+    let a = a as u16 & 0xFF;
+    let b = b as u16 & 0xFF;
+
+    (a + b) & 0x100 == 0x100
+}
+
+//TODO: need to test this more to see if correct. ie signed values probably not correct.
+pub fn is_carry_subtract(a: u8, b: u8) -> bool {
+    let a = a as i16 & 0xFF;
+    let b = b as i16 & 0xFF;
+
+    (a - b) & 0x100 == 0x100
+}
+
+pub fn is_half_carry_add_16(a: u16, b: u16) -> bool {
+    (((a & 0xFF) + (b & 0xFF)) & 0x100) == 0x100
+}
+
+//TODO: need to test this more to see if correct. ie signed values probably not correct.
+pub fn is_half_carry_subtract_16(a: u16, b: u16) -> bool {
+    let a = a as i16 & 0xFF;
+    let b = b as i16 & 0xFF;
+
+    (a - b) & 0x100 == 0x100
+}
+
+pub fn is_carry_add_16(a: u16, b: u16) -> bool {
+    let a = a as u32 & 0xFFF;
+    let b = b as u32 & 0xFFF;
+
+    (a + b) & 0x1000 == 0x1000
+}
+
+//TODO: need to test this more to see if correct. ie signed values probably not correct.
+pub fn is_carry_subtract_16(a: u16, b: u16) -> bool {
+    let a = a as i32 & 0xFFF;
+    let b = b as i32 & 0xFFF;
+
+    (a - b) & 0x1000 == 0x1000
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

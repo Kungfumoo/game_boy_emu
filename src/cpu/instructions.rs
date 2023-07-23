@@ -3,7 +3,11 @@ use std::num::Wrapping;
 use super::{
     CPU,
     registers::{to8_bit, to16_bit, RegisterChange},
-    flags::{is_half_carry_add, is_half_carry_subtract, FlagChange},
+    flags::{
+        FlagChange,
+        is_half_carry_add, is_half_carry_subtract,
+        is_carry_add_16, is_half_carry_add_16
+    },
     memory::{MemoryChange, MemoryEdit}
 };
 
@@ -119,6 +123,10 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 }
             }
         },
+        0x09 => add_to_hl( //ADD HL, BC
+            cpu.registers.bc(),
+            cpu
+        ),
         0x0B => dec16_bit({ //DEC BC
             let bc = sub16_bit(cpu.registers.bc(), 1);
             let (b, c) = to8_bit(bc);
@@ -566,6 +574,31 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             flags: FlagChange::default(),
             register: RegisterChange::default(),
             memory: MemoryChange::default()
+        }
+    }
+}
+
+fn add_to_hl(operand: u16, cpu: &CPU) -> StateChange {
+    let hl = cpu.registers.hl();
+
+    StateChange {
+        byte_length: 1,
+        t_states: 8,
+        flags: FlagChange {
+            subtract: Some(false),
+            carry: Some(is_carry_add_16(hl, operand)),
+            half_carry: Some(is_half_carry_add_16(hl, operand)),
+            ..FlagChange::default()
+        },
+        memory: MemoryChange::default(),
+        register: {
+            let (h, l) = to8_bit(add16_bit(hl, operand));
+
+            RegisterChange {
+                h: Some(h),
+                l: Some(l),
+                ..RegisterChange::default()
+            }
         }
     }
 }
