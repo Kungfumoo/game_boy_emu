@@ -177,7 +177,18 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             ..RegisterChange::default()
         }),
-        0x10 => StateChange {
+        0x0F => { //RRCA (rotate register A right)
+            let a = cpu.registers.a.rotate_right(1);
+
+            rotate_register(
+                RegisterChange {
+                    a: Some(a),
+                    ..RegisterChange::default()
+                },
+                (a & 0x80) == 0x80 //check leftmost bit
+            )
+        },
+        0x10 => StateChange { //STOP - TODO: something about switching between power modes on GBC cpu
             byte_length: 2,
             ..nop()
         },
@@ -240,6 +251,29 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             ..RegisterChange::default()
         }),
+        0x17 => { //RLA (rotate register A left through the carry)
+            //carry works effectively as the 1st bit on the right so need to emulate this...
+            let mut a = (cpu.registers.a as u16) << 1; //convert to 16bit and shift to left by 1
+
+            if cpu.flags.carry {
+                a += 1; //+1 will set the new rightmost bit
+            }
+
+            //bit 9 of the 16bit int will be the new carry
+            let set_carry = (a & 0x100) == 0x100;
+
+            if set_carry {
+                a -= 0x100; //unset bit 9 so we can cast back to 8 bits
+            }
+
+            rotate_register(
+                RegisterChange {
+                    a: Some(a as u8),
+                    ..RegisterChange::default()
+                },
+                set_carry
+            )
+        },
         0x1B => dec16_bit({ //DEC DE
             let de = sub16_bit(cpu.registers.de(), 1);
             let (d, e) = to8_bit(de);
