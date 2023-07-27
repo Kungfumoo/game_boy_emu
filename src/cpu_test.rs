@@ -147,6 +147,103 @@ fn test_0x09() { //ADD HL, BC
 }
 
 #[test]
+#[allow(non_snake_case)]
+fn test_0x0A() { //LD A, [BC]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.b = 0xA0;
+    cpu.registers.c = 0xAF;
+    cpu.memory[0xA0AF] = 200;
+
+    cpu.execute(0x0A);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(200, cpu.registers.a);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x0B() { //DEC BC
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.b = 0xA0;
+    cpu.registers.c = 0xAF;
+
+    cpu.execute(0x0B);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0xA0AE, cpu.registers.bc());
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x0C() { //INC C
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.c = 0x0A;
+
+    cpu.execute(0x0C);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x0B, cpu.registers.c);
+    assert!(!cpu.flags.zero);
+    assert!(!cpu.flags.subtract);
+    assert!(!cpu.flags.half_carry);
+
+    cpu.registers.c = 0xFF;
+
+    cpu.execute(0x0C);
+
+    assert_eq!(0x00, cpu.registers.c);
+    assert!(cpu.flags.zero);
+    assert!(!cpu.flags.subtract);
+    assert!(cpu.flags.half_carry); //11111111 + 00000001 = 1 gets carried past 4th bit
+
+    cpu.registers.c = 0x0F;
+
+    cpu.execute(0x0C);
+
+    assert_eq!(0x10, cpu.registers.c);
+    assert!(!cpu.flags.zero);
+    assert!(!cpu.flags.subtract);
+    assert!(cpu.flags.half_carry); //00001111 + 00000001 = 1 gets carried past 4th bit
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x0D() { //DEC C
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.c = 0x0A;
+
+    cpu.execute(0x0D);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x09, cpu.registers.c);
+    assert!(!cpu.flags.zero);
+    assert!(cpu.flags.subtract);
+    assert!(!cpu.flags.half_carry);
+
+    cpu.registers.c = 0x01;
+
+    cpu.execute(0x0D);
+
+    assert_eq!(0x00, cpu.registers.c);
+    assert!(cpu.flags.zero);
+    assert!(cpu.flags.subtract);
+    assert!(!cpu.flags.half_carry); //11111111 + 00000001 = 1 gets carried past 4th bit
+
+    cpu.registers.c = 0x10;
+
+    cpu.execute(0x0D);
+
+    assert_eq!(0x0F, cpu.registers.c);
+    assert!(!cpu.flags.zero);
+    assert!(cpu.flags.subtract);
+    assert!(cpu.flags.half_carry); //0001000 - 00000001 = 1 gets carried past 4th bit
+}
+
+#[test]
 fn test_0x21() { //LD HL, u16
     let mut cpu = prepare_cpu();
 

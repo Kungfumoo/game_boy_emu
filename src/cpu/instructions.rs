@@ -129,6 +129,12 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu.registers.hl(),
             cpu.registers.bc()
         ),
+        0x0A => ld_from_absolute(
+            RegisterChange {
+                a: Some(cpu.memory[cpu.registers.bc() as usize]),
+                ..RegisterChange::default()
+            }
+        ),
         0x0B => dec16_bit({ //DEC BC
             let bc = sub16_bit(cpu.registers.bc(), 1);
             let (b, c) = to8_bit(bc);
@@ -580,19 +586,19 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
     }
 }
 
-fn add_to_hl(hlValue: u16, operand: u16) -> StateChange {
+fn add_to_hl(hl_value: u16, operand: u16) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 8,
         flags: FlagChange {
             subtract: Some(false),
-            carry: Some(is_carry_add_16(hlValue, operand)),
-            half_carry: Some(is_half_carry_add_16(hlValue, operand)),
+            carry: Some(is_carry_add_16(hl_value, operand)),
+            half_carry: Some(is_half_carry_add_16(hl_value, operand)),
             ..FlagChange::default()
         },
         memory: MemoryChange::default(),
         register: {
-            let (h, l) = to8_bit(add16_bit(hlValue, operand));
+            let (h, l) = to8_bit(add16_bit(hl_value, operand));
 
             RegisterChange {
                 h: Some(h),
@@ -690,6 +696,16 @@ fn ld_to_absolute(change: MemoryChange) -> StateChange {
         flags: FlagChange::default(),
         register: RegisterChange::default(),
         memory: change
+    }
+}
+
+fn ld_from_absolute(change: RegisterChange) -> StateChange {
+    StateChange {
+        byte_length: 1,
+        t_states: 8,
+        flags: FlagChange::default(),
+        register: change,
+        memory: MemoryChange::default()
     }
 }
 
