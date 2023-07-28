@@ -129,7 +129,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu.registers.hl(),
             cpu.registers.bc()
         ),
-        0x0A => ld_from_absolute(
+        0x0A => ld_from_absolute( //LD A, [BC]
             RegisterChange {
                 a: Some(cpu.memory[cpu.registers.bc() as usize]),
                 ..RegisterChange::default()
@@ -282,6 +282,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             relative_jmp(modifier)
         },
+        0x19 => add_to_hl( //ADD HL, DE
+            cpu.registers.hl(),
+            cpu.registers.de()
+        ),
+        0x1A => ld_from_absolute( //LD A, [DE]
+            RegisterChange {
+                a: Some(cpu.memory[cpu.registers.de() as usize]),
+                ..RegisterChange::default()
+            }
+        ),
         0x1B => dec16_bit({ //DEC DE
             let de = sub16_bit(cpu.registers.de(), 1);
             let (d, e) = to8_bit(de);
