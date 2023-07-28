@@ -402,6 +402,22 @@ fn test_0x17() { //RLA
 }
 
 #[test]
+fn text_0x18() { //JR e8
+    let mut cpu = prepare_cpu();
+    cpu.registers.program_counter = 0x05;
+
+    cpu.execute_with_args(0x18, Some(vec![0xFE])); //-2
+
+    assert_eq!(0x05, cpu.registers.program_counter);
+
+    cpu.registers.program_counter = 0x05;
+
+    cpu.execute_with_args(0x18, Some(vec![0xFD])); //-3
+
+    assert_eq!(0x04, cpu.registers.program_counter);
+}
+
+#[test]
 fn test_0x21() { //LD HL, u16
     let mut cpu = prepare_cpu();
 

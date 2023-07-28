@@ -14,7 +14,7 @@ use super::{
 };
 
 pub struct StateChange {
-    pub byte_length: u8,
+    pub byte_length: i16,
     pub t_states: u8,
     pub flags: FlagChange,
     pub register: RegisterChange,
@@ -273,6 +273,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 },
                 set_carry
             )
+        },
+        0x18 => { //JR e8
+            let pc = cpu.registers.program_counter;
+
+            #[allow(overflowing_literals)]
+            let modifier = cpu.memory[(pc + 1) as usize] as i8;
+
+            relative_jmp(modifier)
         },
         0x1B => dec16_bit({ //DEC DE
             let de = sub16_bit(cpu.registers.de(), 1);
@@ -617,6 +625,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             register: RegisterChange::default(),
             memory: MemoryChange::default()
         }
+    }
+}
+
+fn relative_jmp(modifier: i8) -> StateChange {
+    StateChange {
+        byte_length: (2 + modifier).into(),
+        t_states: 12,
+        flags: FlagChange::default(),
+        register: RegisterChange::default(),
+        memory: MemoryChange::default()
     }
 }
 

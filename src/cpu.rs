@@ -74,7 +74,7 @@ impl CPU {
 
             for i in &args {
                 self.memory[pc as usize] = *i;
-                pc = pc + 1;
+                pc += 1;
             }
         }
 
@@ -87,8 +87,9 @@ impl CPU {
     }
 
     fn update(&mut self, change: &StateChange) {
-        let pc_increment: &u16 = &change.byte_length.into();
-        self.registers.program_counter += pc_increment;
+        self.registers.program_counter = self.registers.program_counter.wrapping_add_signed(
+            change.byte_length
+        );
 
         //TODO: t states - according to this article: https://forums.nesdev.org/viewtopic.php?t=14014 we may not need to care
 
