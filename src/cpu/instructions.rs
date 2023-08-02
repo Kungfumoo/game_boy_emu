@@ -334,6 +334,24 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             ..RegisterChange::default()
         }),
+        0x1F => { //RRA (rotate register A right through the carry)
+            let mut a = cpu.registers.a;
+            let set_carry = (a & 0x1) == 0x1; //if rightmost is 1 then it will carry
+
+            a = a >> 1;
+
+            if cpu.flags.carry {
+                a += 0x80; //0x80 will set the new leftmost bit
+            }
+
+            rotate_register(
+                RegisterChange {
+                    a: Some(a),
+                    ..RegisterChange::default()
+                },
+                set_carry
+            )
+        },
         0x21 => ld16_immediate({ //LD HL, u16
             let pc = cpu.registers.program_counter;
 

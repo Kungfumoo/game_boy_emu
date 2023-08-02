@@ -534,6 +534,50 @@ fn test_0x1D() { //DEC E
 }
 
 #[test]
+#[allow(non_snake_case)]
+fn test_0x1E() { //LD E, u8
+    let mut cpu = prepare_cpu();
+
+    cpu.execute_with_args(0x1E, Some(vec![0x0B]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0x0B, cpu.registers.e);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x1F() { //RRA
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0x02;
+    cpu.execute(0x1F);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x01, cpu.registers.a);
+    assert!(!cpu.flags.zero);
+    assert!(!cpu.flags.subtract);
+    assert!(!cpu.flags.half_carry);
+    assert!(!cpu.flags.carry);
+
+    cpu.registers.a = 0x01;
+    cpu.execute(0x1F);
+
+    assert_eq!(0x00, cpu.registers.a);
+    assert!(!cpu.flags.zero);
+    assert!(!cpu.flags.subtract);
+    assert!(!cpu.flags.half_carry);
+    assert!(cpu.flags.carry);
+
+    cpu.execute(0x1F);
+
+    assert_eq!(0x80, cpu.registers.a);
+    assert!(!cpu.flags.zero);
+    assert!(!cpu.flags.subtract);
+    assert!(!cpu.flags.half_carry);
+    assert!(!cpu.flags.carry);
+}
+
+#[test]
 fn test_0x21() { //LD HL, u16
     let mut cpu = prepare_cpu();
 
