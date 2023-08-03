@@ -352,6 +352,18 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 set_carry
             )
         },
+        0x20 => { //JR NZ, e8
+            if cpu.flags.zero {
+                return no_relative_jmp();
+            }
+
+            let pc = cpu.registers.program_counter;
+
+            #[allow(overflowing_literals)]
+            let modifier = cpu.memory[(pc + 1) as usize] as i8;
+
+            relative_jmp(modifier)
+        },
         0x21 => ld16_immediate({ //LD HL, u16
             let pc = cpu.registers.program_counter;
 
@@ -653,6 +665,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             register: RegisterChange::default(),
             memory: MemoryChange::default()
         }
+    }
+}
+
+fn no_relative_jmp() -> StateChange {
+    StateChange {
+        byte_length: 2,
+        t_states: 8,
+        flags: FlagChange::default(),
+        register: RegisterChange::default(),
+        memory: MemoryChange::default()
     }
 }
 
