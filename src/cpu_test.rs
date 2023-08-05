@@ -686,6 +686,21 @@ fn test_0x26() { //LD H, u8
 }
 
 #[test]
+fn test_0x27() { //DAA
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0x07;
+    cpu.execute(0x87); //7 + 7 = 14 (00001110 non bcd)
+
+    assert_eq!(0x0E, cpu.registers.a); //0x0E = 00001110 (14 non bcd)
+
+    cpu.execute(0x27); //correct to bcd so 14 (0001,0100)
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0x14, cpu.registers.a); //0x14 = 00010100 (14 in BCD)
+}
+
+#[test]
 #[allow(non_snake_case)]
 fn test_0x3E() { //LD A, u8
     let mut cpu = prepare_cpu();
@@ -693,4 +708,15 @@ fn test_0x3E() { //LD A, u8
     cpu.execute_with_args(0x3E, Option::Some(vec![100])); //load A with 100
     assert_eq!(2, cpu.registers.program_counter);
     assert_eq!(cpu.registers.a, 100);
+}
+
+#[test]
+fn test_0x87() { //ADD A, A
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0x04;
+    cpu.execute(0x87);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x08, cpu.registers.a);
 }

@@ -4,7 +4,7 @@ use super::{
     flags::{
         FlagChange,
         is_half_carry_add, is_half_carry_subtract,
-        is_carry_add_16, is_half_carry_add_16
+        is_carry_add_16, is_half_carry_add_16, is_carry_add
     },
     memory::{MemoryChange, MemoryEdit},
     util::{
@@ -437,6 +437,46 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             ..RegisterChange::default()
         }),
+        0x27 => { //DAA
+            //https://forums.nesdev.org/viewtopic.php?p=196282#p196282
+            let mut a = cpu.registers.a;
+            let mut set_carry = false;
+
+            if !cpu.flags.subtract { //addition
+                if cpu.flags.carry || a > 0x99 {
+                    a += 0x60;
+                    set_carry = true;
+                }
+
+                if cpu.flags.half_carry || (a & 0x0F) > 0x09 {
+                    a += 0x06;
+                }
+            } else { //subtraction
+                if cpu.flags.carry {
+                    a -= 0x60;
+                }
+
+                if cpu.flags.half_carry {
+                    a -= 0x06;
+                }
+            }
+
+            StateChange {
+                byte_length: 1,
+                t_states: 4,
+                memory: MemoryChange::default(),
+                flags: FlagChange {
+                    carry: Some(set_carry),
+                    half_carry: Some(false),
+                    zero: Some(a == 0),
+                    ..FlagChange::default()
+                },
+                register: RegisterChange {
+                    a: Some(a),
+                    ..RegisterChange::default()
+                }
+            }
+        },
         0x2B => dec16_bit({ //DEC HL
             let hl = sub16_bit(cpu.registers.hl(), 1);
             let (h, l) = to8_bit(hl);
@@ -658,6 +698,10 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             ..RegisterChange::default()
         }),
         0x76 => nop(), //TODO: is this the same as nop?
+        0x87 => add_to_a( //ADD A, A
+            cpu.registers.a,
+            cpu.registers.a
+        ),
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -684,6 +728,26 @@ fn relative_jmp(modifier: i8) -> StateChange {
         t_states: 12,
         flags: FlagChange::default(),
         register: RegisterChange::default(),
+        memory: MemoryChange::default()
+    }
+}
+
+fn add_to_a(a_value: u8, operand: u8) -> StateChange {
+    let new_value = add8_bit(a_value, operand);
+
+    StateChange {
+        byte_length: 1,
+        t_states: 4,
+        flags: FlagChange {
+            subtract: Some(false),
+            carry: Some(is_carry_add(a_value, operand)),
+            half_carry: Some(is_half_carry_add(a_value, operand)),
+            zero: Some(new_value == 0)
+        },
+        register: RegisterChange {
+            a: Some(new_value),
+            ..RegisterChange::default()
+        },
         memory: MemoryChange::default()
     }
 }
