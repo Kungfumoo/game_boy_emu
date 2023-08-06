@@ -701,6 +701,138 @@ fn test_0x27() { //DAA
 }
 
 #[test]
+fn text_0x28() { //JR Z, e8
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.zero = true;
+    cpu.registers.program_counter = 0x05;
+    cpu.execute_with_args(0x28, Some(vec![0xFE])); //-2
+
+    assert_eq!(0x05, cpu.registers.program_counter);
+
+    cpu.flags.zero = true;
+    cpu.registers.program_counter = 0x05;
+    cpu.execute_with_args(0x28, Some(vec![0xFD])); //-3
+
+    assert_eq!(0x04, cpu.registers.program_counter);
+
+    cpu.flags.zero = true;
+    cpu.registers.program_counter = 0x05;
+    cpu.execute_with_args(0x28, Some(vec![0x03])); //+3
+
+    assert_eq!(0x0A, cpu.registers.program_counter);
+
+    cpu.flags.zero = false;
+    cpu.registers.program_counter = 0x05;
+    cpu.execute_with_args(0x28, Some(vec![0x03])); //+3
+
+    assert_eq!(0x07, cpu.registers.program_counter);
+}
+
+#[test]
+fn test_0x29() { //ADD HL, HL
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.subtract = true;
+
+    cpu.registers.h = 0x00;
+    cpu.registers.l = 0x01;
+
+    cpu.execute(0x29);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x00, cpu.registers.h);
+    assert_eq!(0x02, cpu.registers.l);
+    assert!(!cpu.flags.subtract);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x2A() { //LD A, (HL+)
+    let mut cpu = prepare_cpu();
+
+    cpu.memory[0xC001] = 0x24;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+
+    cpu.execute(0x2A);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x24, cpu.registers.a);
+    assert_eq!(0xC002, cpu.registers.hl());
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x2B() { //DEC HL
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+
+    cpu.execute(0x2B);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0xC000, cpu.registers.hl());
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x2C() { //INC L
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.l = 0x01;
+
+    cpu.execute(0x2C);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x02, cpu.registers.l);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x2D() { //DEC L
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.l = 0x0A;
+
+    cpu.execute(0x2D);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x09, cpu.registers.l);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x2E() { //LD L, u8
+    let mut cpu = prepare_cpu();
+
+    cpu.execute_with_args(0x2E, Option::Some(vec![100])); //load L with 100
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(cpu.registers.l, 100);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x2F() { //CPL
+    let mut cpu = prepare_cpu();
+
+    cpu.execute(0x2F);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0xFF, cpu.registers.a);
+    assert!(cpu.flags.subtract);
+    assert!(cpu.flags.half_carry);
+
+    cpu.registers.a = 0x02;
+    cpu.execute(0x2F);
+
+    assert_eq!(0xFD, cpu.registers.a);
+    assert!(cpu.flags.subtract);
+    assert!(cpu.flags.half_carry);
+}
+
+#[test]
 #[allow(non_snake_case)]
 fn test_0x3E() { //LD A, u8
     let mut cpu = prepare_cpu();

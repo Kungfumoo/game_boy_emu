@@ -477,6 +477,32 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 }
             }
         },
+        0x28 => { //JR Z, e8
+            if !cpu.flags.zero {
+                return no_relative_jmp();
+            }
+
+            let pc = cpu.registers.program_counter;
+
+            #[allow(overflowing_literals)]
+            let modifier = cpu.memory[(pc + 1) as usize] as i8;
+
+            relative_jmp(modifier)
+        },
+        0x29 => add_to_hl( //ADD HL, HL
+            cpu.registers.hl(),
+            cpu.registers.hl()
+        ),
+        0x2A => { //LD A, (HL+)
+            let (h, l) = to8_bit(add16_bit(cpu.registers.hl(), 1));
+
+            ld_from_absolute(RegisterChange {
+                a: Some(cpu.memory[cpu.registers.hl() as usize]),
+                h: Some(h),
+                l: Some(l),
+                ..RegisterChange::default()
+            })
+        },
         0x2B => dec16_bit({ //DEC HL
             let hl = sub16_bit(cpu.registers.hl(), 1);
             let (h, l) = to8_bit(hl);
@@ -519,6 +545,20 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             ..RegisterChange::default()
         }),
+        0x2F => StateChange { //CPL
+            byte_length: 1,
+            t_states: 4,
+            flags: FlagChange {
+                subtract: Some(true),
+                half_carry: Some(true),
+                ..FlagChange::default()
+            },
+            register: RegisterChange {
+                a: Some(!cpu.registers.a),
+                ..RegisterChange::default()
+            },
+            memory: MemoryChange::default()
+        },
         0x31 => ld16_immediate({ //LD SP, u16
             let pc = cpu.registers.program_counter;
 
