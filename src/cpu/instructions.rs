@@ -4,7 +4,8 @@ use super::{
     flags::{
         FlagChange,
         is_half_carry_add, is_half_carry_subtract,
-        is_carry_add_16, is_half_carry_add_16, is_carry_add
+        is_carry_add_16, is_half_carry_add_16,
+        is_carry_add
     },
     memory::{MemoryChange, MemoryEdit},
     util::{

@@ -97,7 +97,6 @@ pub fn is_carry_add_16(a: u16, b: u16) -> bool {
     (a.wrapping_add(b) & 0x1000) == 0x1000
 }
 
-//TODO: need to test this more to see if correct. ie signed values probably not correct.
 pub fn is_carry_subtract_16(a: u16, b: u16) -> bool {
     let a = a as u32 & 0xFFF;
     let b = b as u32 & 0xFFF;
