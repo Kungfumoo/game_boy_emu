@@ -559,6 +559,18 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             memory: MemoryChange::default()
         },
+        0x30 => { //JR NC, e8
+            if cpu.flags.carry {
+                return no_relative_jmp();
+            }
+
+            let pc = cpu.registers.program_counter;
+
+            #[allow(overflowing_literals)]
+            let modifier = cpu.memory[(pc + 1) as usize] as i8;
+
+            relative_jmp(modifier)
+        },
         0x31 => ld16_immediate({ //LD SP, u16
             let pc = cpu.registers.program_counter;
 
