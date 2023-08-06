@@ -692,12 +692,12 @@ fn test_0x27() { //DAA
     cpu.registers.a = 0x07;
     cpu.execute(0x87); //7 + 7 = 14 (00001110 non bcd)
 
-    assert_eq!(0x0E, cpu.registers.a); //0x0E = 00001110 (14 non bcd)
+    assert_eq!(0b00001110, cpu.registers.a); //0x0E = 00001110 (14 non bcd)
 
     cpu.execute(0x27); //correct to bcd so 14 (0001,0100)
 
     assert_eq!(2, cpu.registers.program_counter);
-    assert_eq!(0x14, cpu.registers.a); //0x14 = 00010100 (14 in BCD)
+    assert_eq!(0b00010100, cpu.registers.a); //0x14 = 00010100 (14 in BCD)
 }
 
 #[test]
@@ -939,6 +939,119 @@ fn test_0x36() { //LD (HL), u8
 }
 
 #[test]
+fn test_0x37() { //SCF (S)
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.subtract = true;
+    cpu.flags.half_carry = true;
+
+    cpu.execute(0x37);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert!(cpu.flags.carry);
+    assert!(!cpu.flags.subtract);
+    assert!(!cpu.flags.half_carry);
+}
+
+#[test]
+fn test_0x38() { //JR C, e8
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.carry = true;
+    cpu.registers.program_counter = 0x05;
+    cpu.execute_with_args(0x38, Some(vec![0xFE])); //-2
+
+    assert_eq!(0x05, cpu.registers.program_counter);
+
+    cpu.flags.carry = true;
+    cpu.registers.program_counter = 0x05;
+    cpu.execute_with_args(0x38, Some(vec![0xFD])); //-3
+
+    assert_eq!(0x04, cpu.registers.program_counter);
+
+    cpu.flags.carry = true;
+    cpu.registers.program_counter = 0x05;
+    cpu.execute_with_args(0x38, Some(vec![0x03])); //+3
+
+    assert_eq!(0x0A, cpu.registers.program_counter);
+
+    cpu.flags.carry = false;
+    cpu.registers.program_counter = 0x05;
+    cpu.execute_with_args(0x38, Some(vec![0x03])); //+3
+
+    assert_eq!(0x07, cpu.registers.program_counter);
+}
+
+#[test]
+fn test_0x39() { //ADD HL, SP
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0xFF01;
+    cpu.registers.h = 0x00;
+    cpu.registers.l = 0x05;
+
+    cpu.execute(0x39);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0xFF06, cpu.registers.hl());
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x3A() { //LD A, (HL-)
+    let mut cpu = prepare_cpu();
+
+    cpu.memory[0xC001] = 0x24;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+
+    cpu.execute(0x3A);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x24, cpu.registers.a);
+    assert_eq!(0xC000, cpu.registers.hl());
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x3B() { //DEC SP
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0xC001;
+
+    cpu.execute(0x3B);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0xC000, cpu.registers.stack_pointer);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x3C() { //INC A
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0x01;
+
+    cpu.execute(0x3C);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x02, cpu.registers.a);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x3D() { //DEC A
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0x02;
+
+    cpu.execute(0x3D);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x01, cpu.registers.a);
+}
+
+#[test]
 #[allow(non_snake_case)]
 fn test_0x3E() { //LD A, u8
     let mut cpu = prepare_cpu();
@@ -946,6 +1059,28 @@ fn test_0x3E() { //LD A, u8
     cpu.execute_with_args(0x3E, Option::Some(vec![100])); //load A with 100
     assert_eq!(2, cpu.registers.program_counter);
     assert_eq!(cpu.registers.a, 100);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x3F() { //CCF
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.carry = true;
+    cpu.flags.half_carry = true;
+    cpu.flags.subtract = true;
+
+    cpu.execute(0x3F);
+
+    assert!(!cpu.flags.carry);
+    assert!(!cpu.flags.subtract);
+    assert!(!cpu.flags.half_carry);
+
+    cpu.execute(0x3F);
+
+    assert!(cpu.flags.carry);
+    assert!(!cpu.flags.subtract);
+    assert!(!cpu.flags.half_carry);
 }
 
 #[test]

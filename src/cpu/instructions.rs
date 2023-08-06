@@ -669,6 +669,44 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 }
             }
         },
+        0x37 => StateChange { //SCF (Set Carry Flag)
+            byte_length: 1,
+            t_states: 4,
+            flags: FlagChange {
+                subtract: Some(false),
+                half_carry: Some(false),
+                carry: Some(true),
+                ..FlagChange::default()
+            },
+            register: RegisterChange::default(),
+            memory: MemoryChange::default()
+        },
+        0x38 => { //JR C, e8
+            if !cpu.flags.carry {
+                return no_relative_jmp();
+            }
+
+            let pc = cpu.registers.program_counter;
+
+            #[allow(overflowing_literals)]
+            let modifier = cpu.memory[(pc + 1) as usize] as i8;
+
+            relative_jmp(modifier)
+        },
+        0x39 => add_to_hl( //ADD HL, SP
+            cpu.registers.hl(),
+            cpu.registers.stack_pointer
+        ),
+        0x3A => { //LD A, (HL-)
+            let (h, l) = to8_bit(sub16_bit(cpu.registers.hl(), 1));
+
+            ld_from_absolute(RegisterChange {
+                a: Some(cpu.memory[cpu.registers.hl() as usize]),
+                h: Some(h),
+                l: Some(l),
+                ..RegisterChange::default()
+            })
+        },
         0x3B => dec16_bit({ //DEC SP
             let sp = sub16_bit(cpu.registers.stack_pointer, 1);
 
@@ -709,13 +747,13 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             },
             ..RegisterChange::default()
         }),
-        0x37 => StateChange {
+        0x3F => StateChange { //CCF (Complement/Invert Carry Flag)
             byte_length: 1,
             t_states: 4,
             flags: FlagChange {
-                carry: Some(true),
                 subtract: Some(false),
                 half_carry: Some(false),
+                carry: Some(!cpu.flags.carry),
                 ..FlagChange::default()
             },
             register: RegisterChange::default(),
