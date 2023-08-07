@@ -784,11 +784,263 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             b: Option::Some(cpu.registers.l),
             ..RegisterChange::default()
         }),
+        0x46 => ld_from_absolute(RegisterChange { //LD B, [HL]
+            b: Some(cpu.memory[cpu.registers.hl() as usize]),
+            ..RegisterChange::default()
+        }),
         0x47 => ld_register_to_register(RegisterChange { //LD B, A
             b: Option::Some(cpu.registers.a),
             ..RegisterChange::default()
         }),
-        0x76 => nop(), //TODO: is this the same as nop?
+        0x48 => ld_register_to_register(RegisterChange { //LD C, B
+            c: Option::Some(cpu.registers.b),
+            ..RegisterChange::default()
+        }),
+        0x49 => ld_register_to_register(RegisterChange { //LD C, C
+            c: Option::Some(cpu.registers.c),
+            ..RegisterChange::default()
+        }),
+        0x4A => ld_register_to_register(RegisterChange { //LD C, D
+            c: Option::Some(cpu.registers.d),
+            ..RegisterChange::default()
+        }),
+        0x4B => ld_register_to_register(RegisterChange { //LD C, E
+            c: Option::Some(cpu.registers.e),
+            ..RegisterChange::default()
+        }),
+        0x4C => ld_register_to_register(RegisterChange { //LD C, H
+            c: Option::Some(cpu.registers.h),
+            ..RegisterChange::default()
+        }),
+        0x4D => ld_register_to_register(RegisterChange { //LD C, L
+            c: Option::Some(cpu.registers.l),
+            ..RegisterChange::default()
+        }),
+        0x4E => ld_from_absolute(RegisterChange { //LD C, [HL]
+            c: Some(cpu.memory[cpu.registers.hl() as usize]),
+            ..RegisterChange::default()
+        }),
+        0x4F => ld_register_to_register(RegisterChange { //LD C, A
+            c: Option::Some(cpu.registers.a),
+            ..RegisterChange::default()
+        }),
+        0x50 => ld_register_to_register(RegisterChange { //LD D, B
+            d: Option::Some(cpu.registers.b),
+            ..RegisterChange::default()
+        }),
+        0x51 => ld_register_to_register(RegisterChange { //LD D, C
+            d: Option::Some(cpu.registers.c),
+            ..RegisterChange::default()
+        }),
+        0x52 => ld_register_to_register(RegisterChange { //LD D, D
+            d: Option::Some(cpu.registers.d),
+            ..RegisterChange::default()
+        }),
+        0x53 => ld_register_to_register(RegisterChange { //LD D, E
+            d: Option::Some(cpu.registers.e),
+            ..RegisterChange::default()
+        }),
+        0x54 => ld_register_to_register(RegisterChange { //LD D, H
+            d: Option::Some(cpu.registers.h),
+            ..RegisterChange::default()
+        }),
+        0x55 => ld_register_to_register(RegisterChange { //LD D, L
+            d: Option::Some(cpu.registers.l),
+            ..RegisterChange::default()
+        }),
+        0x56 => ld_from_absolute(RegisterChange { //LD D, [HL]
+            d: Some(cpu.memory[cpu.registers.hl() as usize]),
+            ..RegisterChange::default()
+        }),
+        0x57 => ld_register_to_register(RegisterChange { //LD D, A
+            d: Option::Some(cpu.registers.a),
+            ..RegisterChange::default()
+        }),
+        0x58 => ld_register_to_register(RegisterChange { //LD E, B
+            e: Option::Some(cpu.registers.b),
+            ..RegisterChange::default()
+        }),
+        0x59 => ld_register_to_register(RegisterChange { //LD E, C
+            e: Option::Some(cpu.registers.c),
+            ..RegisterChange::default()
+        }),
+        0x5A => ld_register_to_register(RegisterChange { //LD E, D
+            e: Option::Some(cpu.registers.d),
+            ..RegisterChange::default()
+        }),
+        0x5B => ld_register_to_register(RegisterChange { //LD E, E
+            e: Option::Some(cpu.registers.e),
+            ..RegisterChange::default()
+        }),
+        0x5C => ld_register_to_register(RegisterChange { //LD E, H
+            e: Option::Some(cpu.registers.h),
+            ..RegisterChange::default()
+        }),
+        0x5D => ld_register_to_register(RegisterChange { //LD E, L
+            e: Option::Some(cpu.registers.l),
+            ..RegisterChange::default()
+        }),
+        0x5E => ld_from_absolute(RegisterChange { //LD E, [HL]
+            e: Some(cpu.memory[cpu.registers.hl() as usize]),
+            ..RegisterChange::default()
+        }),
+        0x5F => ld_register_to_register(RegisterChange { //LD E, A
+            e: Option::Some(cpu.registers.a),
+            ..RegisterChange::default()
+        }),
+        0x60 => ld_register_to_register(RegisterChange { //LD H, B
+            h: Option::Some(cpu.registers.b),
+            ..RegisterChange::default()
+        }),
+        0x61 => ld_register_to_register(RegisterChange { //LD H, C
+            h: Option::Some(cpu.registers.c),
+            ..RegisterChange::default()
+        }),
+        0x62 => ld_register_to_register(RegisterChange { //LD H, D
+            h: Option::Some(cpu.registers.d),
+            ..RegisterChange::default()
+        }),
+        0x63 => ld_register_to_register(RegisterChange { //LD H, E
+            h: Option::Some(cpu.registers.e),
+            ..RegisterChange::default()
+        }),
+        0x64 => ld_register_to_register(RegisterChange { //LD H, H
+            h: Option::Some(cpu.registers.h),
+            ..RegisterChange::default()
+        }),
+        0x65 => ld_register_to_register(RegisterChange { //LD H, L
+            h: Option::Some(cpu.registers.l),
+            ..RegisterChange::default()
+        }),
+        0x66 => ld_from_absolute(RegisterChange { //LD H, [HL]
+            h: Some(cpu.memory[cpu.registers.hl() as usize]),
+            ..RegisterChange::default()
+        }),
+        0x67 => ld_register_to_register(RegisterChange { //LD H, A
+            h: Option::Some(cpu.registers.a),
+            ..RegisterChange::default()
+        }),
+        0x68 => ld_register_to_register(RegisterChange { //LD L, B
+            l: Option::Some(cpu.registers.b),
+            ..RegisterChange::default()
+        }),
+        0x69 => ld_register_to_register(RegisterChange { //LD L, C
+            l: Option::Some(cpu.registers.c),
+            ..RegisterChange::default()
+        }),
+        0x6A => ld_register_to_register(RegisterChange { //LD L, D
+            l: Option::Some(cpu.registers.d),
+            ..RegisterChange::default()
+        }),
+        0x6B => ld_register_to_register(RegisterChange { //LD L, E
+            l: Option::Some(cpu.registers.e),
+            ..RegisterChange::default()
+        }),
+        0x6C => ld_register_to_register(RegisterChange { //LD L, H
+            l: Option::Some(cpu.registers.h),
+            ..RegisterChange::default()
+        }),
+        0x6D => ld_register_to_register(RegisterChange { //LD L, L
+            l: Option::Some(cpu.registers.l),
+            ..RegisterChange::default()
+        }),
+        0x6E => ld_from_absolute(RegisterChange { //LD L, [HL]
+            l: Some(cpu.memory[cpu.registers.hl() as usize]),
+            ..RegisterChange::default()
+        }),
+        0x6F => ld_register_to_register(RegisterChange { //LD L, A
+            l: Option::Some(cpu.registers.a),
+            ..RegisterChange::default()
+        }),
+        0x70 => ld_to_absolute(MemoryChange { //LD [HL], B
+            changes: vec![
+                MemoryEdit {
+                    key: cpu.registers.hl(),
+                    value: cpu.registers.b
+                }
+            ]
+        }),
+        0x71 => ld_to_absolute(MemoryChange { //LD [HL], C
+            changes: vec![
+                MemoryEdit {
+                    key: cpu.registers.hl(),
+                    value: cpu.registers.c
+                }
+            ]
+        }),
+        0x72 => ld_to_absolute(MemoryChange { //LD [HL], D
+            changes: vec![
+                MemoryEdit {
+                    key: cpu.registers.hl(),
+                    value: cpu.registers.d
+                }
+            ]
+        }),
+        0x73 => ld_to_absolute(MemoryChange { //LD [HL], E
+            changes: vec![
+                MemoryEdit {
+                    key: cpu.registers.hl(),
+                    value: cpu.registers.e
+                }
+            ]
+        }),
+        0x74 => ld_to_absolute(MemoryChange { //LD [HL], H
+            changes: vec![
+                MemoryEdit {
+                    key: cpu.registers.hl(),
+                    value: cpu.registers.h
+                }
+            ]
+        }),
+        0x75 => ld_to_absolute(MemoryChange { //LD [HL], L
+            changes: vec![
+                MemoryEdit {
+                    key: cpu.registers.hl(),
+                    value: cpu.registers.l
+                }
+            ]
+        }),
+        0x76 => nop(), //HALT //TODO: is this the same as nop?
+        0x77 => ld_to_absolute(MemoryChange { //LD [HL], A
+            changes: vec![
+                MemoryEdit {
+                    key: cpu.registers.hl(),
+                    value: cpu.registers.a
+                }
+            ]
+        }),
+        0x78 => ld_register_to_register(RegisterChange { //LD A, B
+            a: Option::Some(cpu.registers.b),
+            ..RegisterChange::default()
+        }),
+        0x79 => ld_register_to_register(RegisterChange { //LD A, C
+            a: Option::Some(cpu.registers.c),
+            ..RegisterChange::default()
+        }),
+        0x7A => ld_register_to_register(RegisterChange { //LD A, D
+            a: Option::Some(cpu.registers.d),
+            ..RegisterChange::default()
+        }),
+        0x7B => ld_register_to_register(RegisterChange { //LD A, E
+            a: Option::Some(cpu.registers.e),
+            ..RegisterChange::default()
+        }),
+        0x7C => ld_register_to_register(RegisterChange { //LD A, H
+            a: Option::Some(cpu.registers.h),
+            ..RegisterChange::default()
+        }),
+        0x7D => ld_register_to_register(RegisterChange { //LD A, L
+            a: Option::Some(cpu.registers.l),
+            ..RegisterChange::default()
+        }),
+        0x7E => ld_from_absolute(RegisterChange { //LD A, [HL]
+            a: Some(cpu.memory[cpu.registers.hl() as usize]),
+            ..RegisterChange::default()
+        }),
+        0x7F => ld_register_to_register(RegisterChange { //LD A, A
+            a: Option::Some(cpu.registers.a),
+            ..RegisterChange::default()
+        }),
         0x87 => add_to_a( //ADD A, A
             cpu.registers.a,
             cpu.registers.a
