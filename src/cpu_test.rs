@@ -1166,6 +1166,110 @@ fn test_ld_register_to_register() { //all `LD r, r` instructions
 }
 
 #[test]
+fn test_0x46() { //LD B, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.memory[0xC001] = 0x42;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+
+    cpu.execute(0x46);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x42, cpu.registers.b);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x4E() { //LD C, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.memory[0xC001] = 0x42;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+
+    cpu.execute(0x4E);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x42, cpu.registers.c);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x56() { //LD D, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.memory[0xC001] = 0x42;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+
+    cpu.execute(0x56);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x42, cpu.registers.d);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x5E() { //LD E, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.memory[0xC001] = 0x42;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+
+    cpu.execute(0x5E);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x42, cpu.registers.e);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x66() { //LD H, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.memory[0xC001] = 0x42;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+
+    cpu.execute(0x66);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x42, cpu.registers.h);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x6E() { //LD L, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.memory[0xC001] = 0x42;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+
+    cpu.execute(0x6E);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x42, cpu.registers.l);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x7E() { //LD A, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.memory[0xC001] = 0x42;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+
+    cpu.execute(0x7E);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x42, cpu.registers.a);
+}
+
+#[test]
 fn test_0x87() { //ADD A, A
     let mut cpu = prepare_cpu();
 
