@@ -1084,6 +1084,88 @@ fn test_0x3F() { //CCF
 }
 
 #[test]
+fn test_ld_register_to_register() { //all `LD r, r` instructions
+    fn get_register(cpu: &mut CPU, index: i32) -> Option<&mut u8> {
+        match index {
+            0x00 => Option::Some(&mut cpu.registers.b),
+            0x01 => Option::Some(&mut cpu.registers.c),
+            0x02 => Option::Some(&mut cpu.registers.d),
+            0x03 => Option::Some(&mut cpu.registers.e),
+            0x04 => Option::Some(&mut cpu.registers.h),
+            0x05 => Option::Some(&mut cpu.registers.l),
+            0x07 => Option::Some(&mut cpu.registers.a),
+            _ => Option::None
+        }
+    }
+
+    let mut cpu = prepare_cpu();
+    let (mut row, mut col, mut reg) = (0x40, 0x00, 0);
+
+    loop {
+        loop {
+            let opcode = row + col;
+            let target_reg = col % 0x08;
+            let is_a = target_reg == 0x07;
+
+            //open block here to borrow mut reference to work out expected value
+            let expected = {
+                let target = get_register(&mut cpu, target_reg);
+
+                if let Option::Some(target_reg) = target {
+                    *target_reg = rand::random::<u8>();
+
+                    *target_reg
+                } else {
+                    0
+                }
+            };
+
+            if expected != 0 {
+                cpu.execute(opcode as u8);
+
+                let actual = {
+                    let src = get_register(
+                        &mut cpu,
+                        if is_a { 0x07 } else { reg }
+                    );
+
+                    if let Option::Some(src_reg) = src {
+                        *src_reg
+                    } else {
+                        0
+                    }
+                };
+
+                assert_eq!(
+                    expected,
+                    actual,
+                    "testing ld r,r with registers {:#02x} and {:#02x}",
+                    reg,
+                    target_reg
+                );
+            }
+
+            col += 0x01;
+            if col == 0x07 {
+                reg += 1;
+            }
+
+            if col > 0x0F {
+                break;
+            }
+        }
+
+        col = 0x00;
+        row += 0x10;
+        reg += 1;
+
+        if row == 0x70 {
+            break;
+        }
+    }
+}
+
+#[test]
 fn test_0x87() { //ADD A, A
     let mut cpu = prepare_cpu();
 
