@@ -1065,6 +1065,13 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu.registers.a,
             cpu.registers.l
         ),
+        0x86 => StateChange { //ADD A, [HL]
+            t_states: 8,
+            ..add_to_a(
+                cpu.registers.a,
+                cpu.memory[cpu.registers.hl() as usize]
+            )
+        },
         0x87 => add_to_a( //ADD A, A
             cpu.registers.a,
             cpu.registers.a

@@ -1342,12 +1342,16 @@ fn test_register_add_to_a() { //ADD A, r
 }
 
 #[test]
-fn test_0x87() { //ADD A, A
+fn test_0x86() { //ADD A, [HL]
     let mut cpu = prepare_cpu();
 
-    cpu.registers.a = 0x04;
-    cpu.execute(0x87);
+    cpu.registers.a = 0x0A;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0x14;
+
+    cpu.execute(0x86);
 
     assert_eq!(1, cpu.registers.program_counter);
-    assert_eq!(0x08, cpu.registers.a);
+    assert_eq!(0x1E, cpu.registers.a);
 }
