@@ -1171,6 +1171,54 @@ fn test_ld_register_to_register() { //all `LD r, r` instructions
     }
 }
 
+const LD_HL_R_START: u8 = 0x70;
+
+#[test]
+fn test_ld_register_to_hl_absolute() {
+    fn get_register(cpu: &mut CPU, index: i32) -> Option<&mut u8> {
+        match index {
+            0x00 => Option::Some(&mut cpu.registers.b),
+            0x01 => Option::Some(&mut cpu.registers.c),
+            0x02 => Option::Some(&mut cpu.registers.d),
+            0x03 => Option::Some(&mut cpu.registers.e),
+            0x04 => Option::Some(&mut cpu.registers.h),
+            0x05 => Option::Some(&mut cpu.registers.l),
+            0x07 => Option::Some(&mut cpu.registers.a),
+            _ => Option::None
+        }
+    }
+
+    let mut cpu = prepare_cpu();
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+
+    for opcode in LD_HL_R_START..0x77 {
+        let expected = {
+            let reg = get_register(&mut cpu, (opcode - LD_HL_R_START) as i32);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            let reg = reg.unwrap();
+            *reg = rand::random::<u8>();
+            *reg
+        };
+
+        let addr = cpu.registers.hl() as usize;
+
+        cpu.memory[addr] = 0;
+        cpu.execute(opcode);
+
+        assert_eq!(
+            cpu.memory[addr],
+            expected,
+            "executing {:#02x}",
+            opcode
+        );
+    }
+}
+
 #[test]
 fn test_0x46() { //LD B, [HL]
     let mut cpu = prepare_cpu();
