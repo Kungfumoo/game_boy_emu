@@ -1159,7 +1159,13 @@ fn test_ld_register_to_register() { //all `LD r, r` instructions
         row += 0x10;
         reg += 1;
 
+        //only 0x76 ~ 0x7F are LD r,r
         if row == 0x70 {
+            col = 0x08;
+            reg += 1;
+        }
+
+        if row == 0x80 {
             break;
         }
     }
