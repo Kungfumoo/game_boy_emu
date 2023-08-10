@@ -1041,6 +1041,30 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             a: Option::Some(cpu.registers.a),
             ..RegisterChange::default()
         }),
+        0x80 => add_to_a( //ADD A, B
+            cpu.registers.a,
+            cpu.registers.b
+        ),
+        0x81 => add_to_a( //ADD A, C
+            cpu.registers.a,
+            cpu.registers.c
+        ),
+        0x82 => add_to_a( //ADD A, D
+            cpu.registers.a,
+            cpu.registers.d
+        ),
+        0x83 => add_to_a( //ADD A, E
+            cpu.registers.a,
+            cpu.registers.e
+        ),
+        0x84 => add_to_a( //ADD A, H
+            cpu.registers.a,
+            cpu.registers.h
+        ),
+        0x85 => add_to_a( //ADD A, L
+            cpu.registers.a,
+            cpu.registers.l
+        ),
         0x87 => add_to_a( //ADD A, A
             cpu.registers.a,
             cpu.registers.a

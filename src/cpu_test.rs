@@ -9,6 +9,19 @@ fn prepare_cpu() -> CPU {
     cpu
 }
 
+fn get_register(cpu: &mut CPU, index: i32) -> Option<&mut u8> {
+    match index {
+        0x00 => Option::Some(&mut cpu.registers.b),
+        0x01 => Option::Some(&mut cpu.registers.c),
+        0x02 => Option::Some(&mut cpu.registers.d),
+        0x03 => Option::Some(&mut cpu.registers.e),
+        0x04 => Option::Some(&mut cpu.registers.h),
+        0x05 => Option::Some(&mut cpu.registers.l),
+        0x07 => Option::Some(&mut cpu.registers.a),
+        _ => Option::None
+    }
+}
+
 #[test]
 fn test_0x00() { //nop
     let mut cpu = prepare_cpu();
@@ -1085,19 +1098,6 @@ fn test_0x3F() { //CCF
 
 #[test]
 fn test_ld_register_to_register() { //all `LD r, r` instructions
-    fn get_register(cpu: &mut CPU, index: i32) -> Option<&mut u8> {
-        match index {
-            0x00 => Option::Some(&mut cpu.registers.b),
-            0x01 => Option::Some(&mut cpu.registers.c),
-            0x02 => Option::Some(&mut cpu.registers.d),
-            0x03 => Option::Some(&mut cpu.registers.e),
-            0x04 => Option::Some(&mut cpu.registers.h),
-            0x05 => Option::Some(&mut cpu.registers.l),
-            0x07 => Option::Some(&mut cpu.registers.a),
-            _ => Option::None
-        }
-    }
-
     let mut cpu = prepare_cpu();
     let (mut row, mut col, mut reg) = (0x40, 0x00, 0);
 
@@ -1172,23 +1172,10 @@ fn test_ld_register_to_register() { //all `LD r, r` instructions
 }
 
 const LD_HL_R_START: u8 = 0x70;
-
 #[test]
 fn test_ld_register_to_hl_absolute() {
-    fn get_register(cpu: &mut CPU, index: i32) -> Option<&mut u8> {
-        match index {
-            0x00 => Option::Some(&mut cpu.registers.b),
-            0x01 => Option::Some(&mut cpu.registers.c),
-            0x02 => Option::Some(&mut cpu.registers.d),
-            0x03 => Option::Some(&mut cpu.registers.e),
-            0x04 => Option::Some(&mut cpu.registers.h),
-            0x05 => Option::Some(&mut cpu.registers.l),
-            0x07 => Option::Some(&mut cpu.registers.a),
-            _ => Option::None
-        }
-    }
-
     let mut cpu = prepare_cpu();
+
     cpu.registers.h = 0xC0;
     cpu.registers.l = 0x01;
 
@@ -1321,6 +1308,37 @@ fn test_0x7E() { //LD A, [HL]
 
     assert_eq!(1, cpu.registers.program_counter);
     assert_eq!(0x42, cpu.registers.a);
+}
+
+const ADD_A_R_START: u8 = 0x80;
+const TO_ADD: u8 = 0x42;
+#[test]
+fn test_register_add_to_a() { //ADD A, r
+    let mut cpu = prepare_cpu();
+
+    for opcode in ADD_A_R_START..0x87 {
+        let expected = {
+            let reg = get_register(&mut cpu, (opcode - ADD_A_R_START) as i32);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            let reg = reg.unwrap();
+            *reg = rand::random::<u8>();
+            *reg
+        };
+
+        cpu.registers.a = TO_ADD;
+        cpu.execute(opcode);
+
+        assert_eq!(
+            cpu.registers.a,
+            expected.wrapping_add(TO_ADD),
+            "executing {:#02x}",
+            opcode
+        );
+    }
 }
 
 #[test]
