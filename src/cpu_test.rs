@@ -1179,7 +1179,7 @@ fn test_ld_register_to_hl_absolute() {
     cpu.registers.h = 0xC0;
     cpu.registers.l = 0x01;
 
-    for opcode in LD_HL_R_START..0x77 {
+    for opcode in LD_HL_R_START..0x78 {
         let expected = {
             let reg = get_register(&mut cpu, (opcode - LD_HL_R_START) as i32);
 
@@ -1316,17 +1316,20 @@ const TO_ADD: u8 = 0x42;
 fn test_register_add_to_a() { //ADD A, r
     let mut cpu = prepare_cpu();
 
-    for opcode in ADD_A_R_START..0x87 {
-        let expected = {
-            let reg = get_register(&mut cpu, (opcode - ADD_A_R_START) as i32);
+    for opcode in ADD_A_R_START..0x88 {
+        let expected = match opcode {
+            0x87 => TO_ADD,
+            _ => {
+                let reg = get_register(&mut cpu, (opcode - ADD_A_R_START) as i32);
 
-            if let Option::None = reg {
-                continue;
+                if let Option::None = reg {
+                    continue;
+                }
+
+                let reg = reg.unwrap();
+                *reg = rand::random::<u8>();
+                *reg
             }
-
-            let reg = reg.unwrap();
-            *reg = rand::random::<u8>();
-            *reg
         };
 
         cpu.registers.a = TO_ADD;
@@ -1357,22 +1360,24 @@ fn test_0x86() { //ADD A, [HL]
 }
 
 const ADC_A_R_START: u8 = 0x88;
-const ADC_ADD: u8 = 0x20;
 #[test]
 fn test_register_adc_to_a() { //ADC A, r
     let mut cpu = prepare_cpu();
 
-    for opcode in ADC_A_R_START..0x8F {
-        let expected = {
-            let reg = get_register(&mut cpu, (opcode - ADC_A_R_START) as i32);
+    for opcode in ADC_A_R_START..0x90 {
+        let expected = match opcode {
+            0x8F => TO_ADD,
+            _ => {
+                let reg = get_register(&mut cpu, (opcode - ADC_A_R_START) as i32);
 
-            if let Option::None = reg {
-                continue;
+                if let Option::None = reg {
+                    continue;
+                }
+
+                let reg = reg.unwrap();
+                *reg = rand::random::<u8>();
+                *reg
             }
-
-            let reg = reg.unwrap();
-            *reg = ADC_ADD;
-            *reg
         };
 
         cpu.flags.carry = true;
@@ -1381,7 +1386,7 @@ fn test_register_adc_to_a() { //ADC A, r
 
         assert_eq!(
             cpu.registers.a,
-            expected + 1 + TO_ADD,
+            expected.wrapping_add(TO_ADD + 1),
             "executing {:#02x}",
             opcode
         );
@@ -1403,4 +1408,112 @@ fn test_0x8E() { //ADC A, [HL]
 
     assert_eq!(1, cpu.registers.program_counter);
     assert_eq!(0x1F, cpu.registers.a);
+}
+
+const SUB_A_R_START: u8 = 0x90;
+const TO_SUB: u8 = 0x42;
+#[test]
+fn test_register_sub_from_a() { //SUB A, r
+    let mut cpu = prepare_cpu();
+
+    for opcode in SUB_A_R_START..0x98 {
+        let expected = {
+            let reg = get_register(&mut cpu, (opcode - SUB_A_R_START) as i32);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            let reg = reg.unwrap();
+            *reg = rand::random::<u8>();
+            *reg
+        };
+
+        cpu.registers.a = TO_SUB;
+        cpu.execute(opcode);
+
+        if opcode == 0x97 { //SUB A, A will always result in zero and the same flags
+            assert_eq!(0, cpu.registers.a, "executing 0x97");
+            assert!(cpu.flags.zero);
+            assert!(cpu.flags.subtract);
+            assert!(!cpu.flags.half_carry);
+            assert!(!cpu.flags.carry);
+
+            continue;
+        }
+
+        assert_eq!(
+            cpu.registers.a,
+            TO_SUB.wrapping_sub(expected),
+            "executing {:#02x}",
+            opcode
+        );
+    }
+}
+
+#[test]
+fn test_0x96() { //SUB A, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0x0A;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0x02;
+
+    cpu.execute(0x96);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x08, cpu.registers.a);
+}
+
+const SBC_A_R_START: u8 = 0x98;
+#[test]
+fn test_register_sbc_from_a() { //SBC A, r
+    let mut cpu = prepare_cpu();
+
+    for opcode in SBC_A_R_START..0xA0 {
+        let expected = match opcode {
+            0x9F => TO_SUB,
+            _ => {
+                let reg = get_register(&mut cpu, (opcode - SBC_A_R_START) as i32);
+
+                if let Option::None = reg {
+                    continue;
+                }
+
+                let reg = reg.unwrap();
+                *reg = rand::random::<u8>();
+                *reg
+            }
+        };
+
+        cpu.flags.carry = true;
+        cpu.registers.a = TO_SUB;
+        cpu.execute(opcode);
+
+        assert_eq!(
+            cpu.registers.a,
+            TO_SUB.wrapping_sub(expected + 1),
+            "executing {:#02x}",
+            opcode
+        );
+    }
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x9E() { //SBC A, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.carry = true;
+    cpu.registers.a = 0x0A;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0x06;
+
+    cpu.execute(0x9E);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.registers.a);
+    assert!(cpu.flags.subtract);
 }

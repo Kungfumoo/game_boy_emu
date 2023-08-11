@@ -5,7 +5,7 @@ use super::{
         FlagChange,
         is_half_carry_add, is_half_carry_subtract,
         is_carry_add_16, is_half_carry_add_16,
-        is_carry_add
+        is_carry_add, is_carry_subtract
     },
     memory::{MemoryChange, MemoryEdit},
     util::{
@@ -1154,6 +1154,119 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             add_to_a(cpu.registers.a, operand)
         },
+        0x90 => sub_from_a( //SUB A, B
+            cpu.registers.a,
+            cpu.registers.b
+        ),
+        0x91 => sub_from_a( //SUB A, C
+            cpu.registers.a,
+            cpu.registers.c
+        ),
+        0x92 => sub_from_a( //SUB A, D
+            cpu.registers.a,
+            cpu.registers.d
+        ),
+        0x93 => sub_from_a( //SUB A, E
+            cpu.registers.a,
+            cpu.registers.e
+        ),
+        0x94 => sub_from_a( //SUB A, H
+            cpu.registers.a,
+            cpu.registers.h
+        ),
+        0x95 => sub_from_a( //SUB A, L
+            cpu.registers.a,
+            cpu.registers.l
+        ),
+        0x96 => StateChange { //SUB A, [HL]
+            t_states: 8,
+            ..sub_from_a(
+                cpu.registers.a,
+                cpu.memory[cpu.registers.hl() as usize]
+            )
+        },
+        0x97 => sub_from_a( //SUB A, A
+            cpu.registers.a,
+            cpu.registers.a
+        ),
+        0x98 => { //SBC A, B
+            let mut operand = cpu.registers.b;
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            sub_from_a(cpu.registers.a, operand)
+        },
+        0x99 => { //SBC A, C
+            let mut operand = cpu.registers.c;
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            sub_from_a(cpu.registers.a, operand)
+        },
+        0x9A => { //SBC A, D
+            let mut operand = cpu.registers.d;
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            sub_from_a(cpu.registers.a, operand)
+        },
+        0x9B => { //SBC A, E
+            let mut operand = cpu.registers.e;
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            sub_from_a(cpu.registers.a, operand)
+        },
+        0x9C => { //SBC A, H
+            let mut operand = cpu.registers.h;
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            sub_from_a(cpu.registers.a, operand)
+        },
+        0x9D => { //SBC A, L
+            let mut operand = cpu.registers.l;
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            sub_from_a(cpu.registers.a, operand)
+        },
+        0x9E => { //SBC A, [HL]
+            let mut operand = cpu.memory[cpu.registers.hl() as usize];
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            StateChange {
+                t_states: 8,
+                ..sub_from_a(
+                    cpu.registers.a,
+                    operand
+                )
+            }
+        },
+        0x9F => { //SBC A, A
+            let mut operand = cpu.registers.a;
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            sub_from_a(cpu.registers.a, operand)
+        },
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -1194,6 +1307,26 @@ fn add_to_a(a_value: u8, operand: u8) -> StateChange {
             subtract: Some(false),
             carry: Some(is_carry_add(a_value, operand)),
             half_carry: Some(is_half_carry_add(a_value, operand)),
+            zero: Some(new_value == 0)
+        },
+        register: RegisterChange {
+            a: Some(new_value),
+            ..RegisterChange::default()
+        },
+        memory: MemoryChange::default()
+    }
+}
+
+fn sub_from_a(a_value: u8, operand: u8) -> StateChange {
+    let new_value = sub8_bit(a_value, operand);
+
+    StateChange {
+        byte_length: 1,
+        t_states: 4,
+        flags: FlagChange {
+            subtract: Some(true),
+            carry: Some(is_carry_subtract(a_value, operand)),
+            half_carry: Some(is_half_carry_subtract(a_value, operand)),
             zero: Some(new_value == 0)
         },
         register: RegisterChange {
