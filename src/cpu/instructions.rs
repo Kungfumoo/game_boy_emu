@@ -1076,6 +1076,84 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu.registers.a,
             cpu.registers.a
         ),
+        0x88 => { //ADC A, B
+            let mut operand = cpu.registers.b;
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            add_to_a(cpu.registers.a, operand)
+        },
+        0x89 => { //ADC A, C
+            let mut operand = cpu.registers.c;
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            add_to_a(cpu.registers.a, operand)
+        },
+        0x8A => { //ADC A, D
+            let mut operand = cpu.registers.d;
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            add_to_a(cpu.registers.a, operand)
+        },
+        0x8B => { //ADC A, E
+            let mut operand = cpu.registers.e;
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            add_to_a(cpu.registers.a, operand)
+        },
+        0x8C => { //ADC A, H
+            let mut operand = cpu.registers.h;
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            add_to_a(cpu.registers.a, operand)
+        },
+        0x8D => { //ADC A, L
+            let mut operand = cpu.registers.l;
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            add_to_a(cpu.registers.a, operand)
+        },
+        0x8E => { //ADC A, [HL]
+            let mut operand = cpu.memory[cpu.registers.hl() as usize];
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            StateChange {
+                t_states: 8,
+                ..add_to_a(
+                    cpu.registers.a,
+                    operand
+                )
+            }
+        },
+        0x8F => { //ADC A, A
+            let mut operand = cpu.registers.a;
+
+            if cpu.flags.carry {
+                operand += 1;
+            }
+
+            add_to_a(cpu.registers.a, operand)
+        },
         _ => StateChange {
             byte_length: 0,
             t_states: 0,

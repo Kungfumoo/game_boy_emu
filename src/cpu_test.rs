@@ -1355,3 +1355,52 @@ fn test_0x86() { //ADD A, [HL]
     assert_eq!(1, cpu.registers.program_counter);
     assert_eq!(0x1E, cpu.registers.a);
 }
+
+const ADC_A_R_START: u8 = 0x88;
+const ADC_ADD: u8 = 0x20;
+#[test]
+fn test_register_adc_to_a() { //ADC A, r
+    let mut cpu = prepare_cpu();
+
+    for opcode in ADC_A_R_START..0x8F {
+        let expected = {
+            let reg = get_register(&mut cpu, (opcode - ADC_A_R_START) as i32);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            let reg = reg.unwrap();
+            *reg = ADC_ADD;
+            *reg
+        };
+
+        cpu.flags.carry = true;
+        cpu.registers.a = TO_ADD;
+        cpu.execute(opcode);
+
+        assert_eq!(
+            cpu.registers.a,
+            expected + 1 + TO_ADD,
+            "executing {:#02x}",
+            opcode
+        );
+    }
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0x8E() { //ADC A, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.carry = true;
+    cpu.registers.a = 0x0A;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0x14;
+
+    cpu.execute(0x8E);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x1F, cpu.registers.a);
+}
