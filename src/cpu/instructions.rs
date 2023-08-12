@@ -1267,6 +1267,41 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             sub_from_a(cpu.registers.a, operand)
         },
+        0xA0 => and_to_a( //AND A, B
+            cpu.registers.a,
+            cpu.registers.b
+        ),
+        0xA1 => and_to_a( //AND A, C
+            cpu.registers.a,
+            cpu.registers.c
+        ),
+        0xA2 => and_to_a( //AND A, D
+            cpu.registers.a,
+            cpu.registers.d
+        ),
+        0xA3 => and_to_a( //AND A, E
+            cpu.registers.a,
+            cpu.registers.e
+        ),
+        0xA4 => and_to_a( //AND A, H
+            cpu.registers.a,
+            cpu.registers.h
+        ),
+        0xA5 => and_to_a( //AND A, L
+            cpu.registers.a,
+            cpu.registers.l
+        ),
+        0xA6 => StateChange { //AND A, [HL]
+            t_states: 8,
+            ..and_to_a(
+                cpu.registers.a,
+                cpu.memory[cpu.registers.hl() as usize]
+            )
+        },
+        0xA7 => and_to_a( //AND A, A
+            cpu.registers.a,
+            cpu.registers.a
+        ),
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -1293,6 +1328,26 @@ fn relative_jmp(modifier: i8) -> StateChange {
         t_states: 12,
         flags: FlagChange::default(),
         register: RegisterChange::default(),
+        memory: MemoryChange::default()
+    }
+}
+
+fn and_to_a(a_value: u8, operand: u8) -> StateChange {
+    let new_value = a_value & operand;
+
+    StateChange {
+        byte_length: 1,
+        t_states: 4,
+        flags: FlagChange {
+            subtract: Some(false),
+            carry: Some(false),
+            half_carry: Some(true),
+            zero: Some(new_value == 0)
+        },
+        register: RegisterChange {
+            a: Some(new_value),
+            ..RegisterChange::default()
+        },
         memory: MemoryChange::default()
     }
 }
