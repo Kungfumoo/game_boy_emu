@@ -1080,7 +1080,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.registers.b;
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             add_to_a(cpu.registers.a, operand)
@@ -1089,7 +1089,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.registers.c;
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             add_to_a(cpu.registers.a, operand)
@@ -1098,7 +1098,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.registers.d;
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             add_to_a(cpu.registers.a, operand)
@@ -1107,7 +1107,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.registers.e;
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             add_to_a(cpu.registers.a, operand)
@@ -1116,7 +1116,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.registers.h;
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             add_to_a(cpu.registers.a, operand)
@@ -1125,7 +1125,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.registers.l;
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             add_to_a(cpu.registers.a, operand)
@@ -1134,7 +1134,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.memory[cpu.registers.hl() as usize];
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             StateChange {
@@ -1149,7 +1149,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.registers.a;
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             add_to_a(cpu.registers.a, operand)
@@ -1193,7 +1193,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.registers.b;
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             sub_from_a(cpu.registers.a, operand)
@@ -1202,7 +1202,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.registers.c;
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             sub_from_a(cpu.registers.a, operand)
@@ -1211,7 +1211,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.registers.d;
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             sub_from_a(cpu.registers.a, operand)
@@ -1220,7 +1220,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.registers.e;
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             sub_from_a(cpu.registers.a, operand)
@@ -1229,7 +1229,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.registers.h;
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             sub_from_a(cpu.registers.a, operand)
@@ -1238,7 +1238,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.registers.l;
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             sub_from_a(cpu.registers.a, operand)
@@ -1247,7 +1247,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.memory[cpu.registers.hl() as usize];
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             StateChange {
@@ -1262,7 +1262,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let mut operand = cpu.registers.a;
 
             if cpu.flags.carry {
-                operand += 1;
+                operand = add8_bit(operand, 1);
             }
 
             sub_from_a(cpu.registers.a, operand)
@@ -1407,6 +1407,23 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu.registers.a,
             cpu.registers.a
         ),
+        0xC3 => { //JP a16
+            let addr = to16_bit(
+                cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                cpu.memory[(cpu.registers.program_counter + 2) as usize]
+            );
+
+            absolute_jmp(addr)
+        },
+        0xC9 => ret(cpu), //RET
+        0xCD => { //CALL a16
+            let addr = to16_bit(
+                cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                cpu.memory[(cpu.registers.program_counter + 2) as usize]
+            );
+
+            call(cpu, addr)
+        },
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -1414,6 +1431,77 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             register: RegisterChange::default(),
             memory: MemoryChange::default()
         }
+    }
+}
+
+//return from subroutine. JP back to the addr that is in the stack
+fn ret(cpu: &CPU) -> StateChange {
+    let lsb = cpu.memory[cpu.registers.stack_pointer as usize];
+    let msb = cpu.memory[(cpu.registers.stack_pointer + 1) as usize];
+    let new_addr = to16_bit(msb, lsb);
+
+    StateChange {
+        byte_length: 1,
+        t_states: 16,
+        flags: FlagChange::default(),
+        register: RegisterChange {
+            pc: Some(new_addr),
+            sp: Some(cpu.registers.stack_pointer + 2),
+            ..RegisterChange::default()
+        },
+        memory: MemoryChange::default()
+    }
+}
+
+//calls a subroutine. JP to the new addr and pushes the old address to the stack
+fn call(cpu: &CPU, new_addr: u16) -> StateChange {
+    let current_address = cpu.registers.program_counter + 3;
+    let (msb, lsb) = to8_bit(current_address);
+
+    StateChange {
+        byte_length: 3,
+        t_states: 24,
+        flags: FlagChange::default(),
+        register: RegisterChange {
+            pc: Some(new_addr),
+            sp: Some(cpu.registers.stack_pointer - 2),
+            ..RegisterChange::default()
+        },
+        memory: MemoryChange {
+            changes: vec![
+                MemoryEdit {
+                    key: cpu.registers.stack_pointer - 1,
+                    value: msb
+                },
+                MemoryEdit {
+                    key: cpu.registers.stack_pointer - 2,
+                    value: lsb
+                }
+            ]
+        }
+    }
+}
+
+fn absolute_jmp(address: u16) -> StateChange {
+    StateChange {
+        byte_length: 3,
+        t_states: 16,
+        register: RegisterChange {
+            pc: Some(address),
+            ..RegisterChange::default()
+        },
+        flags: FlagChange::default(),
+        memory: MemoryChange::default()
+    }
+}
+
+fn no_absolute_jmp() -> StateChange {
+    StateChange {
+        byte_length: 3,
+        t_states: 12,
+        flags: FlagChange::default(),
+        register: RegisterChange::default(),
+        memory: MemoryChange::default()
     }
 }
 

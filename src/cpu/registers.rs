@@ -1,4 +1,5 @@
 pub struct RegisterChange {
+    pub pc: Option<u16>,
     pub sp: Option<u16>,
     pub a: Option<u8>,
     pub b: Option<u8>,
@@ -13,6 +14,7 @@ pub struct RegisterChange {
 impl RegisterChange {
     pub fn default() -> RegisterChange {
         RegisterChange {
+            pc: Option::None,
             sp: Option::None,
             a: Option::None,
             b: Option::None,
@@ -43,7 +45,7 @@ impl Registers {
     pub fn new() -> Registers {
         Registers {
             program_counter: 0x0150, //TODO: may not be correct
-            stack_pointer: 0x00,
+            stack_pointer: 0x05, //TODO: may not be correct
             a: 0x00,
             b: 0x00,
             c: 0x00,
@@ -56,7 +58,10 @@ impl Registers {
     }
 
     pub fn update(&mut self, change: &RegisterChange) {
-        //if change.sp enum value is 'Some' then update stack pointer with attached value
+        if let Some(value) = change.pc {
+            self.program_counter = value;
+        }
+
         if let Some(value) = change.sp {
             self.stack_pointer = value;
         }
@@ -198,5 +203,10 @@ mod tests {
 
         assert_eq!(0x01, left);
         assert_eq!(0x0A, right);
+
+        let (left, right) = to8_bit(0xA034);
+
+        assert_eq!(0xA0, left);
+        assert_eq!(0x34, right);
     }
 }

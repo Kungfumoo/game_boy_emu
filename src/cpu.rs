@@ -61,6 +61,14 @@ impl CPU {
             self.memory[0xC001],
             self.memory[0xC002]
         );
+        println!(
+            "==STACK==\n0x0004: {}\n0x0003: {}\n0x0002: {}\n0x0001: {}\n0x0000: {}",
+            self.memory[0x0004],
+            self.memory[0x0003],
+            self.memory[0x0002],
+            self.memory[0x0001],
+            self.memory[0x0000]
+        );
     }
 
     //execute methods mainly used for testing

@@ -1780,3 +1780,43 @@ fn test_0xBE() { //CP A, [HL]
     assert!(!cpu.flags.carry);
     assert!(cpu.flags.zero);
 }
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xC3() { //JP a16
+    let mut cpu = prepare_cpu();
+
+    cpu.execute_with_args(0xC3, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xC9() { //RET
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x03;
+    cpu.memory[0x04] = 0xC0;
+    cpu.memory[0x03] = 0x01;
+
+    cpu.execute(0xC9);
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+    assert_eq!(0x05, cpu.registers.stack_pointer);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xCD() { //CALL a16
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.program_counter = 0xA034;
+    cpu.registers.stack_pointer = 0x05;
+    cpu.execute_with_args(0xCD, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.registers.stack_pointer);
+    assert_eq!(0xA0, cpu.memory[0x04]);
+    assert_eq!(0x34 + 3, cpu.memory[0x03]); //+3 to account for the instruction and two operands
+}
