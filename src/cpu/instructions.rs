@@ -1372,6 +1372,41 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu.registers.a,
             cpu.registers.a
         ),
+        0xB8 => cp_to_a( //CP A, B
+            cpu.registers.a,
+            cpu.registers.b
+        ),
+        0xB9 => cp_to_a( //CP A, C
+            cpu.registers.a,
+            cpu.registers.c
+        ),
+        0xBA => cp_to_a( //CP A, D
+            cpu.registers.a,
+            cpu.registers.d
+        ),
+        0xBB => cp_to_a( //CP A, E
+            cpu.registers.a,
+            cpu.registers.e
+        ),
+        0xBC => cp_to_a( //CP A, H
+            cpu.registers.a,
+            cpu.registers.h
+        ),
+        0xBD => cp_to_a( //CP A, L
+            cpu.registers.a,
+            cpu.registers.l
+        ),
+        0xBE => StateChange { //CP A, [HL]
+            t_states: 8,
+            ..cp_to_a(
+                cpu.registers.a,
+                cpu.memory[cpu.registers.hl() as usize]
+            )
+        },
+        0xBF => cp_to_a( //CP A, A
+            cpu.registers.a,
+            cpu.registers.a
+        ),
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -1397,6 +1432,23 @@ fn relative_jmp(modifier: i8) -> StateChange {
         byte_length: (2 + modifier).into(),
         t_states: 12,
         flags: FlagChange::default(),
+        register: RegisterChange::default(),
+        memory: MemoryChange::default()
+    }
+}
+
+fn cp_to_a(a_value: u8, operand: u8) -> StateChange {
+    let new_value = sub8_bit(a_value, operand);
+
+    StateChange {
+        byte_length: 1,
+        t_states: 4,
+        flags: FlagChange {
+            subtract: Some(true),
+            carry: Some(is_carry_subtract(a_value, operand)),
+            half_carry: Some(is_half_carry_subtract(a_value, operand)),
+            zero: Some(new_value == 0)
+        },
         register: RegisterChange::default(),
         memory: MemoryChange::default()
     }

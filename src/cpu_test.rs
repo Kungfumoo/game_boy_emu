@@ -1,4 +1,5 @@
 use super::CPU;
+use crate::cpu::flags::is_half_carry_subtract;
 
 const PROGRAM_COUNTER: u16 = 0;
 
@@ -1706,4 +1707,76 @@ fn test_0xB6() { //OR A, [HL]
     assert!(!cpu.flags.half_carry);
     assert!(!cpu.flags.carry);
     assert!(!cpu.flags.zero);
+}
+
+const CP_A_R_START: u8 = 0xB8;
+#[test]
+fn test_register_cp_to_a() { //CP A, r
+    let mut cpu = prepare_cpu();
+
+    for opcode in CP_A_R_START..0xC0 {
+        let expected = {
+            let reg = get_register(&mut cpu, (opcode - CP_A_R_START) as i32);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            let reg = reg.unwrap();
+            *reg = rand::random::<u8>();
+            *reg
+        };
+
+        cpu.registers.a = TO_SUB;
+        cpu.execute(opcode);
+
+        if opcode == 0xBF { //CP A, A will always result in zero and the same flags
+            assert_eq!(TO_SUB, cpu.registers.a, "executing 0xBF"); //CP is like SUB but doesn't change the value in a
+            assert!(cpu.flags.zero, "executing 0xBF");
+            assert!(cpu.flags.subtract, "executing 0xBF");
+            assert!(!cpu.flags.half_carry, "executing 0xBF");
+            assert!(!cpu.flags.carry, "executing 0xBF");
+
+            continue;
+        }
+
+        let result = TO_SUB.wrapping_sub(expected);
+        assert_eq!(cpu.flags.zero, result == 0, "executing {:#02x}", opcode);
+        assert_eq!(cpu.flags.subtract, true, "executing {:#02x}", opcode);
+        assert_eq!(cpu.flags.half_carry, is_half_carry_subtract(cpu.registers.a, expected), "executing {:#02x}", opcode);
+        assert_eq!(cpu.flags.carry, expected > TO_SUB, "executing {:#02x}", opcode);
+    }
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xBE() { //CP A, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0x0A;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0x02;
+
+    cpu.execute(0xBE);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x0A, cpu.registers.a);
+    assert!(cpu.flags.subtract);
+    assert!(!cpu.flags.half_carry);
+    assert!(!cpu.flags.carry);
+    assert!(!cpu.flags.zero);
+
+    cpu.registers.a = 0x0A;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0x0A;
+
+    cpu.execute(0xBE);
+
+    assert_eq!(0x0A, cpu.registers.a);
+    assert!(cpu.flags.subtract);
+    assert!(!cpu.flags.half_carry);
+    assert!(!cpu.flags.carry);
+    assert!(cpu.flags.zero);
 }
