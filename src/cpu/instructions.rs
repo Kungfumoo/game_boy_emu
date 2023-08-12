@@ -1337,6 +1337,41 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu.registers.a,
             cpu.registers.a
         ),
+        0xB0 => or_to_a( //OR A, B
+            cpu.registers.a,
+            cpu.registers.b
+        ),
+        0xB1 => or_to_a( //OR A, C
+            cpu.registers.a,
+            cpu.registers.c
+        ),
+        0xB2 => or_to_a( //OR A, D
+            cpu.registers.a,
+            cpu.registers.d
+        ),
+        0xB3 => or_to_a( //OR A, E
+            cpu.registers.a,
+            cpu.registers.e
+        ),
+        0xB4 => or_to_a( //OR A, H
+            cpu.registers.a,
+            cpu.registers.h
+        ),
+        0xB5 => or_to_a( //OR A, L
+            cpu.registers.a,
+            cpu.registers.l
+        ),
+        0xB6 => StateChange { //OR A, [HL]
+            t_states: 8,
+            ..or_to_a(
+                cpu.registers.a,
+                cpu.memory[cpu.registers.hl() as usize]
+            )
+        },
+        0xB7 => or_to_a( //OR A, A
+            cpu.registers.a,
+            cpu.registers.a
+        ),
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -1363,6 +1398,26 @@ fn relative_jmp(modifier: i8) -> StateChange {
         t_states: 12,
         flags: FlagChange::default(),
         register: RegisterChange::default(),
+        memory: MemoryChange::default()
+    }
+}
+
+fn or_to_a(a_value: u8, operand: u8) -> StateChange {
+    let new_value = a_value | operand;
+
+    StateChange {
+        byte_length: 1,
+        t_states: 4,
+        flags: FlagChange {
+            subtract: Some(false),
+            carry: Some(false),
+            half_carry: Some(false),
+            zero: Some(new_value == 0)
+        },
+        register: RegisterChange {
+            a: Some(new_value),
+            ..RegisterChange::default()
+        },
         memory: MemoryChange::default()
     }
 }

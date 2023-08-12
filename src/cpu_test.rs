@@ -1386,7 +1386,7 @@ fn test_register_adc_to_a() { //ADC A, r
 
         assert_eq!(
             cpu.registers.a,
-            expected.wrapping_add(TO_ADD + 1),
+            expected.wrapping_add(TO_ADD.wrapping_add(1)),
             "executing {:#02x}",
             opcode
         );
@@ -1493,7 +1493,7 @@ fn test_register_sbc_from_a() { //SBC A, r
 
         assert_eq!(
             cpu.registers.a,
-            TO_SUB.wrapping_sub(expected + 1),
+            TO_SUB.wrapping_sub(expected.wrapping_add(1)),
             "executing {:#02x}",
             opcode
         );
@@ -1603,6 +1603,16 @@ fn test_register_xor_to_a() { //XOR A, r
         cpu.registers.a = TO_XOR;
         cpu.execute(opcode);
 
+        if opcode == 0xAF { //XOR A, A will always result in the same result
+            assert_eq!(0, cpu.registers.a);
+            assert!(!cpu.flags.subtract);
+            assert!(!cpu.flags.half_carry);
+            assert!(!cpu.flags.carry);
+            assert!(cpu.flags.zero);
+
+            continue;
+        }
+
         let expected = TO_XOR ^ expected;
 
         assert_eq!(
@@ -1632,6 +1642,66 @@ fn test_0xAE() { //XOR A, [HL]
 
     assert_eq!(1, cpu.registers.program_counter);
     assert_eq!(0b01000001, cpu.registers.a);
+    assert!(!cpu.flags.subtract);
+    assert!(!cpu.flags.half_carry);
+    assert!(!cpu.flags.carry);
+    assert!(!cpu.flags.zero);
+}
+
+const OR_A_R_START: u8 = 0xB0;
+const TO_OR: u8 = 0x42;
+#[test]
+fn test_register_or_to_a() { //OR A, r
+    let mut cpu = prepare_cpu();
+
+    for opcode in OR_A_R_START..0xB8 {
+        let expected = match opcode {
+            0xB7 => TO_OR,
+            _ => {
+                let reg = get_register(&mut cpu, (opcode - OR_A_R_START) as i32);
+
+                if let Option::None = reg {
+                    continue;
+                }
+
+                let reg = reg.unwrap();
+                *reg = rand::random::<u8>();
+                *reg
+            }
+        };
+
+        cpu.registers.a = TO_OR;
+        cpu.execute(opcode);
+
+        let expected = TO_OR | expected;
+
+        assert_eq!(
+            cpu.registers.a,
+            expected,
+            "executing {:#02x}",
+            opcode
+        );
+        assert!(!cpu.flags.subtract);
+        assert!(!cpu.flags.half_carry);
+        assert!(!cpu.flags.carry);
+        assert_eq!(cpu.flags.zero, expected == 0);
+    }
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xB6() { //OR A, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.registers.a = 0b01010010;
+    cpu.memory[0xC001] = 0b00010011;
+
+    cpu.execute(0xB6);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0b01010011, cpu.registers.a);
     assert!(!cpu.flags.subtract);
     assert!(!cpu.flags.half_carry);
     assert!(!cpu.flags.carry);
