@@ -25,6 +25,15 @@ impl FlagChange {
             carry: Option::Some(false),
         }
     }
+
+    pub fn from_u8(f: u8) -> FlagChange {
+        FlagChange {
+            zero: Option::Some((f & 0b10000000) != 0),
+            subtract: Option::Some((f & 0b01000000) != 0),
+            half_carry: Option::Some((f & 0b00100000) != 0),
+            carry: Option::Some((f & 0b00010000) != 0),
+        }
+    }
 }
 
 pub struct Flags {
@@ -163,6 +172,23 @@ mod tests {
 
         assert_eq!(flags.zero, false);
         assert_eq!(flags.subtract, false);
+    }
+
+    #[test]
+    fn test_from_u8() {
+        let mut flags = Flags {
+            zero: false,
+            subtract: false,
+            half_carry: false,
+            carry: false
+        };
+
+        flags.update(&FlagChange::from_u8(0b11000000));
+
+        assert!(flags.zero);
+        assert!(flags.subtract);
+        assert!(!flags.half_carry);
+        assert!(!flags.carry);
     }
 
     #[test]

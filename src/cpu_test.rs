@@ -1953,3 +1953,22 @@ fn test_0xE1() { //POP HL
     assert_eq!(0x05, cpu.registers.stack_pointer);
     assert_eq!(0xC001, cpu.registers.hl());
 }
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xF1() { //POP AF
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x03;
+    cpu.memory[0x04] = 0xC0;
+    cpu.memory[0x03] = 0xA0;
+
+    cpu.execute(0xF1);
+
+    assert_eq!(0x05, cpu.registers.stack_pointer);
+    assert_eq!(0xC0A0, cpu.registers.af(&cpu.flags));
+    assert!(cpu.flags.zero);
+    assert!(!cpu.flags.subtract);
+    assert!(cpu.flags.half_carry);
+    assert!(!cpu.flags.carry);
+}

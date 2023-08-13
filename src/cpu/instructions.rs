@@ -1488,6 +1488,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..RegisterChange::default()
             }
         ),
+        0xF1 => StateChange { //POP AF
+            flags: FlagChange::from_u8(cpu.memory[cpu.registers.stack_pointer as usize]),
+            ..pop_to_register_16_bit(
+                cpu.registers.stack_pointer,
+                RegisterChange {
+                    a: Some(cpu.memory[(cpu.registers.stack_pointer + 1) as usize]),
+                    ..RegisterChange::default()
+                }
+            )
+        },
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
