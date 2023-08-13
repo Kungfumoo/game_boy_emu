@@ -1783,12 +1783,56 @@ fn test_0xBE() { //CP A, [HL]
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xC0() { //RET NZ
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x03;
+    cpu.memory[0x04] = 0xC0;
+    cpu.memory[0x03] = 0x01;
+    cpu.flags.zero = true;
+
+    cpu.execute(0xC0);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.registers.stack_pointer);
+
+    cpu.flags.zero = false;
+    cpu.execute(0xC0);
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+    assert_eq!(0x05, cpu.registers.stack_pointer);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xC3() { //JP a16
     let mut cpu = prepare_cpu();
 
     cpu.execute_with_args(0xC3, Some(vec![0xC0, 0x01]));
 
     assert_eq!(0xC001, cpu.registers.program_counter);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xC8() { //RET Z
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x03;
+    cpu.memory[0x04] = 0xC0;
+    cpu.memory[0x03] = 0x01;
+    cpu.flags.zero = false;
+
+    cpu.execute(0xC8);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.registers.stack_pointer);
+
+    cpu.flags.zero = true;
+    cpu.execute(0xC8);
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+    assert_eq!(0x05, cpu.registers.stack_pointer);
 }
 
 #[test]
@@ -1819,4 +1863,48 @@ fn test_0xCD() { //CALL a16
     assert_eq!(0x03, cpu.registers.stack_pointer);
     assert_eq!(0xA0, cpu.memory[0x04]);
     assert_eq!(0x34 + 3, cpu.memory[0x03]); //+3 to account for the instruction and two operands
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xD0() { //RET NC
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x03;
+    cpu.memory[0x04] = 0xC0;
+    cpu.memory[0x03] = 0x01;
+    cpu.flags.carry = true;
+
+    cpu.execute(0xD0);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.registers.stack_pointer);
+
+    cpu.flags.carry = false;
+    cpu.execute(0xD0);
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+    assert_eq!(0x05, cpu.registers.stack_pointer);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xD8() { //RET C
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x03;
+    cpu.memory[0x04] = 0xC0;
+    cpu.memory[0x03] = 0x01;
+    cpu.flags.carry = false;
+
+    cpu.execute(0xD8);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.registers.stack_pointer);
+
+    cpu.flags.carry = true;
+    cpu.execute(0xD8);
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+    assert_eq!(0x05, cpu.registers.stack_pointer);
 }

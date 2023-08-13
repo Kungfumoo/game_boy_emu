@@ -1407,6 +1407,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu.registers.a,
             cpu.registers.a
         ),
+        0xC0 => { //RET NZ
+            if cpu.flags.zero {
+                return no_ret();
+            }
+
+            StateChange {
+                t_states: 20,
+                ..ret(cpu)
+            }
+        },
         0xC3 => { //JP a16
             let addr = to16_bit(
                 cpu.memory[(cpu.registers.program_counter + 1) as usize],
@@ -1414,6 +1424,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             );
 
             absolute_jmp(addr)
+        },
+        0xC8 => { //RET Z
+            if !cpu.flags.zero {
+                return no_ret();
+            }
+
+            StateChange {
+                t_states: 20,
+                ..ret(cpu)
+            }
         },
         0xC9 => ret(cpu), //RET
         0xCD => { //CALL a16
@@ -1424,6 +1444,26 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             call(cpu, addr)
         },
+        0xD0 => { //RET NC
+            if cpu.flags.carry {
+                return no_ret();
+            }
+
+            StateChange {
+                t_states: 20,
+                ..ret(cpu)
+            }
+        },
+        0xD8 => { //RET C
+            if !cpu.flags.carry {
+                return no_ret();
+            }
+
+            StateChange {
+                t_states: 20,
+                ..ret(cpu)
+            }
+        },
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -1431,6 +1471,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             register: RegisterChange::default(),
             memory: MemoryChange::default()
         }
+    }
+}
+
+fn no_ret() -> StateChange {
+    StateChange {
+        byte_length: 1,
+        t_states: 8,
+        flags: FlagChange::default(),
+        memory: MemoryChange::default(),
+        register: RegisterChange::default()
     }
 }
 
