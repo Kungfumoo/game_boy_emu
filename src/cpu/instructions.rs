@@ -1433,6 +1433,21 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             absolute_jmp(addr)
         },
+        0xC5 => push_from_register_16_bit( //PUSH BC
+            cpu.registers.stack_pointer,
+            MemoryChange {
+                changes: vec![
+                    MemoryEdit {
+                        key: cpu.registers.stack_pointer - 1,
+                        value: cpu.registers.b
+                    },
+                    MemoryEdit {
+                        key: cpu.registers.stack_pointer - 2,
+                        value: cpu.registers.c
+                    }
+                ]
+            }
+        ),
         0xC8 => { //RET Z
             if !cpu.flags.zero {
                 return no_ret();
@@ -1470,6 +1485,21 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..RegisterChange::default()
             }
         ),
+        0xD5 => push_from_register_16_bit( //PUSH DE
+            cpu.registers.stack_pointer,
+            MemoryChange {
+                changes: vec![
+                    MemoryEdit {
+                        key: cpu.registers.stack_pointer - 1,
+                        value: cpu.registers.d
+                    },
+                    MemoryEdit {
+                        key: cpu.registers.stack_pointer - 2,
+                        value: cpu.registers.e
+                    }
+                ]
+            }
+        ),
         0xD8 => { //RET C
             if !cpu.flags.carry {
                 return no_ret();
@@ -1488,6 +1518,21 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..RegisterChange::default()
             }
         ),
+        0xE5 => push_from_register_16_bit( //PUSH HL
+            cpu.registers.stack_pointer,
+            MemoryChange {
+                changes: vec![
+                    MemoryEdit {
+                        key: cpu.registers.stack_pointer - 1,
+                        value: cpu.registers.h
+                    },
+                    MemoryEdit {
+                        key: cpu.registers.stack_pointer - 2,
+                        value: cpu.registers.l
+                    }
+                ]
+            }
+        ),
         0xF1 => StateChange { //POP AF
             flags: FlagChange::from_u8(cpu.memory[cpu.registers.stack_pointer as usize]),
             ..pop_to_register_16_bit(
@@ -1498,6 +1543,21 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 }
             )
         },
+        0xF5 => push_from_register_16_bit( //PUSH AF
+            cpu.registers.stack_pointer,
+            MemoryChange {
+                changes: vec![
+                    MemoryEdit {
+                        key: cpu.registers.stack_pointer - 1,
+                        value: cpu.registers.a
+                    },
+                    MemoryEdit {
+                        key: cpu.registers.stack_pointer - 2,
+                        value: cpu.flags.to_u8() //'f' register
+                    }
+                ]
+            }
+        ),
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -1505,6 +1565,19 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             register: RegisterChange::default(),
             memory: MemoryChange::default()
         }
+    }
+}
+
+fn push_from_register_16_bit(sp: u16, change: MemoryChange) -> StateChange {
+    StateChange {
+        byte_length: 1,
+        t_states: 16,
+        flags: FlagChange::default(),
+        register: RegisterChange {
+            sp: Some(sp - 2),
+            ..RegisterChange::default()
+        },
+        memory: change
     }
 }
 

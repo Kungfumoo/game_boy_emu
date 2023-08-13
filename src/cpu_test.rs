@@ -1830,6 +1830,23 @@ fn test_0xC3() { //JP a16
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xC5() { //PUSH BC
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x05;
+    cpu.registers.b = 0xC0;
+    cpu.registers.c = 0x01;
+
+    cpu.execute(0xC5);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.registers.stack_pointer);
+    assert_eq!(0xC0, cpu.memory[0x04]);
+    assert_eq!(0x01, cpu.memory[0x03]);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xC8() { //RET Z
     let mut cpu = prepare_cpu();
 
@@ -1919,6 +1936,23 @@ fn test_0xD1() { //POP DE
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xD5() { //PUSH DE
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x05;
+    cpu.registers.d = 0xC0;
+    cpu.registers.e = 0x01;
+
+    cpu.execute(0xD5);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.registers.stack_pointer);
+    assert_eq!(0xC0, cpu.memory[0x04]);
+    assert_eq!(0x01, cpu.memory[0x03]);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xD8() { //RET C
     let mut cpu = prepare_cpu();
 
@@ -1956,6 +1990,23 @@ fn test_0xE1() { //POP HL
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xE5() { //PUSH HL
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x05;
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+
+    cpu.execute(0xE5);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.registers.stack_pointer);
+    assert_eq!(0xC0, cpu.memory[0x04]);
+    assert_eq!(0x01, cpu.memory[0x03]);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xF1() { //POP AF
     let mut cpu = prepare_cpu();
 
@@ -1971,4 +2022,22 @@ fn test_0xF1() { //POP AF
     assert!(!cpu.flags.subtract);
     assert!(cpu.flags.half_carry);
     assert!(!cpu.flags.carry);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xF5() { //PUSH AF
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x05;
+    cpu.flags.zero = true;
+    cpu.flags.half_carry = true;
+    cpu.registers.a = 0xC0;
+
+    cpu.execute(0xF5);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.registers.stack_pointer);
+    assert_eq!(0xC0, cpu.memory[0x04]);
+    assert_eq!(0xA0, cpu.memory[0x03]);
 }
