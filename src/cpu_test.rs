@@ -1820,6 +1820,22 @@ fn test_0xC1() { //POP BC
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xC2() { //JP NZ a16
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.zero = true;
+    cpu.execute_with_args(0xC2, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(3, cpu.registers.program_counter);
+
+    cpu.flags.zero = false;
+    cpu.execute_with_args(0xC2, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xC3() { //JP a16
     let mut cpu = prepare_cpu();
 
@@ -1884,6 +1900,22 @@ fn test_0xC9() { //RET
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xCA() { //JP Z a16
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.zero = false;
+    cpu.execute_with_args(0xCA, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(3, cpu.registers.program_counter);
+
+    cpu.flags.zero = true;
+    cpu.execute_with_args(0xCA, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xCD() { //CALL a16
     let mut cpu = prepare_cpu();
 
@@ -1936,6 +1968,22 @@ fn test_0xD1() { //POP DE
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xD2() { //JP NC a16
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.carry = true;
+    cpu.execute_with_args(0xD2, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(3, cpu.registers.program_counter);
+
+    cpu.flags.carry = false;
+    cpu.execute_with_args(0xD2, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xD5() { //PUSH DE
     let mut cpu = prepare_cpu();
 
@@ -1971,6 +2019,22 @@ fn test_0xD8() { //RET C
 
     assert_eq!(0xC001, cpu.registers.program_counter);
     assert_eq!(0x05, cpu.registers.stack_pointer);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xDA() { //JP C a16
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.carry = false;
+    cpu.execute_with_args(0xDA, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(3, cpu.registers.program_counter);
+
+    cpu.flags.carry = true;
+    cpu.execute_with_args(0xDA, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
 }
 
 #[test]

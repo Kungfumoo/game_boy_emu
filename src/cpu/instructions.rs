@@ -1425,6 +1425,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..RegisterChange::default()
             }
         ),
+        0xC2 => { //JP NZ, a16
+            if cpu.flags.zero {
+                return no_absolute_jmp();
+            }
+
+            absolute_jmp(to16_bit(
+                cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                cpu.memory[(cpu.registers.program_counter + 2) as usize]
+            ))
+        },
         0xC3 => { //JP a16
             let addr = to16_bit(
                 cpu.memory[(cpu.registers.program_counter + 1) as usize],
@@ -1459,6 +1469,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         },
         0xC9 => ret(cpu), //RET
+        0xCA => { //JP Z, a16
+            if !cpu.flags.zero {
+                return no_absolute_jmp();
+            }
+
+            absolute_jmp(to16_bit(
+                cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                cpu.memory[(cpu.registers.program_counter + 2) as usize]
+            ))
+        },
         0xCD => { //CALL a16
             let addr = to16_bit(
                 cpu.memory[(cpu.registers.program_counter + 1) as usize],
@@ -1485,6 +1505,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..RegisterChange::default()
             }
         ),
+        0xD2 => { //JP NC, a16
+            if cpu.flags.carry {
+                return no_absolute_jmp();
+            }
+
+            absolute_jmp(to16_bit(
+                cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                cpu.memory[(cpu.registers.program_counter + 2) as usize]
+            ))
+        },
         0xD5 => push_from_register_16_bit( //PUSH DE
             cpu.registers.stack_pointer,
             MemoryChange {
@@ -1509,6 +1539,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 t_states: 20,
                 ..ret(cpu)
             }
+        },
+        0xDA => { //JP C, a16
+            if !cpu.flags.carry {
+                return no_absolute_jmp();
+            }
+
+            absolute_jmp(to16_bit(
+                cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                cpu.memory[(cpu.registers.program_counter + 2) as usize]
+            ))
         },
         0xE1 => pop_to_register_16_bit( //POP HL
             cpu.registers.stack_pointer,
