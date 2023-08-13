@@ -36,7 +36,7 @@ pub struct Registers {
     pub c: u8,
     pub d: u8,
     pub e: u8,
-    pub f: u8,
+    pub f: u8, //TODO: F might be the register hosting the flags, need to find this out
     pub h: u8,
     pub l: u8
 }

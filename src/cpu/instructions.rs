@@ -1417,6 +1417,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..ret(cpu)
             }
         },
+        0xC1 => pop_to_register_16_bit( //POP BC
+            cpu.registers.stack_pointer,
+            RegisterChange {
+                c: Some(cpu.memory[cpu.registers.stack_pointer as usize]),
+                b: Some(cpu.memory[(cpu.registers.stack_pointer + 1) as usize]),
+                ..RegisterChange::default()
+            }
+        ),
         0xC3 => { //JP a16
             let addr = to16_bit(
                 cpu.memory[(cpu.registers.program_counter + 1) as usize],
@@ -1454,6 +1462,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..ret(cpu)
             }
         },
+        0xD1 => pop_to_register_16_bit( //POP DE
+            cpu.registers.stack_pointer,
+            RegisterChange {
+                e: Some(cpu.memory[cpu.registers.stack_pointer as usize]),
+                d: Some(cpu.memory[(cpu.registers.stack_pointer + 1) as usize]),
+                ..RegisterChange::default()
+            }
+        ),
         0xD8 => { //RET C
             if !cpu.flags.carry {
                 return no_ret();
@@ -1464,6 +1480,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..ret(cpu)
             }
         },
+        0xE1 => pop_to_register_16_bit( //POP HL
+            cpu.registers.stack_pointer,
+            RegisterChange {
+                l: Some(cpu.memory[cpu.registers.stack_pointer as usize]),
+                h: Some(cpu.memory[(cpu.registers.stack_pointer + 1) as usize]),
+                ..RegisterChange::default()
+            }
+        ),
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -1471,6 +1495,19 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             register: RegisterChange::default(),
             memory: MemoryChange::default()
         }
+    }
+}
+
+fn pop_to_register_16_bit(sp: u16, change: RegisterChange) -> StateChange {
+    StateChange {
+        byte_length: 1,
+        t_states: 12,
+        flags: FlagChange::default(),
+        register: RegisterChange {
+            sp: Some(sp + 2),
+            ..change
+        },
+        memory: MemoryChange::default()
     }
 }
 

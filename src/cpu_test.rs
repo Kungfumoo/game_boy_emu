@@ -1805,6 +1805,21 @@ fn test_0xC0() { //RET NZ
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xC1() { //POP BC
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x03;
+    cpu.memory[0x04] = 0xC0;
+    cpu.memory[0x03] = 0x01;
+
+    cpu.execute(0xC1);
+
+    assert_eq!(0x05, cpu.registers.stack_pointer);
+    assert_eq!(0xC001, cpu.registers.bc());
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xC3() { //JP a16
     let mut cpu = prepare_cpu();
 
@@ -1889,6 +1904,21 @@ fn test_0xD0() { //RET NC
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xD1() { //POP DE
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x03;
+    cpu.memory[0x04] = 0xC0;
+    cpu.memory[0x03] = 0x01;
+
+    cpu.execute(0xD1);
+
+    assert_eq!(0x05, cpu.registers.stack_pointer);
+    assert_eq!(0xC001, cpu.registers.de());
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xD8() { //RET C
     let mut cpu = prepare_cpu();
 
@@ -1907,4 +1937,19 @@ fn test_0xD8() { //RET C
 
     assert_eq!(0xC001, cpu.registers.program_counter);
     assert_eq!(0x05, cpu.registers.stack_pointer);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xE1() { //POP HL
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x03;
+    cpu.memory[0x04] = 0xC0;
+    cpu.memory[0x03] = 0x01;
+
+    cpu.execute(0xE1);
+
+    assert_eq!(0x05, cpu.registers.stack_pointer);
+    assert_eq!(0xC001, cpu.registers.hl());
 }
