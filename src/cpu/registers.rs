@@ -1,3 +1,5 @@
+use super::flags::Flags;
+
 pub struct RegisterChange {
     pub pc: Option<u16>,
     pub sp: Option<u16>,
@@ -6,7 +8,6 @@ pub struct RegisterChange {
     pub c: Option<u8>,
     pub d: Option<u8>,
     pub e: Option<u8>,
-    pub f: Option<u8>,
     pub h: Option<u8>,
     pub l: Option<u8>
 }
@@ -21,7 +22,6 @@ impl RegisterChange {
             c: Option::None,
             d: Option::None,
             e: Option::None,
-            f: Option::None,
             h: Option::None,
             l: Option::None
         }
@@ -36,7 +36,6 @@ pub struct Registers {
     pub c: u8,
     pub d: u8,
     pub e: u8,
-    pub f: u8, //TODO: F might be the register hosting the flags, need to find this out
     pub h: u8,
     pub l: u8
 }
@@ -51,7 +50,6 @@ impl Registers {
             c: 0x00,
             d: 0x00,
             e: 0x00,
-            f: 0x00,
             h: 0x00,
             l: 0x00
         }
@@ -86,10 +84,6 @@ impl Registers {
             self.e = value;
         }
 
-        if let Some(value) = change.f {
-            self.f = value;
-        }
-
         if let Some(value) = change.h {
             self.h = value;
         }
@@ -99,8 +93,8 @@ impl Registers {
         }
     }
 
-    pub fn af(&self) -> u16 {
-        to16_bit(self.a, self.f)
+    pub fn af(&self, flags: &Flags) -> u16 {
+        to16_bit(self.a, flags.to_u8())
     }
 
     pub fn bc(&self) -> u16 {
@@ -151,12 +145,17 @@ mod tests {
 
     #[test]
     fn test_af() {
+        let flags = Flags {
+            zero: true,
+            subtract: false,
+            half_carry: true,
+            carry: false
+        };
         let mut registers = Registers::new();
 
         registers.a = 0x01;
-        registers.f = 0x0f;
 
-        assert_eq!(registers.af(), 0x010f);
+        assert_eq!(registers.af(&flags), 0x01A0);
     }
 
     #[test]

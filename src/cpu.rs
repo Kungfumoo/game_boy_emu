@@ -45,7 +45,7 @@ impl CPU {
             self.registers.c,
             self.registers.d,
             self.registers.e,
-            self.registers.f,
+            self.flags.to_u8(),
             self.registers.h,
             self.registers.l
         );

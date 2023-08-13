@@ -52,6 +52,15 @@ impl Flags {
             self.carry = state;
         }
     }
+
+    pub fn to_u8(&self) -> u8 {
+        let zero = self.zero as u8;
+        let subtract = self.subtract as u8;
+        let half_carry = self.half_carry as u8;
+        let carry = self.carry as u8;
+
+        zero << 7 | subtract << 6 | half_carry << 5 | carry << 4
+    }
 }
 
 pub fn is_half_carry_add(a: u8, b: u8) -> bool {
@@ -124,6 +133,21 @@ mod tests {
 
         assert_eq!(flags.zero, true);
         assert_eq!(flags.subtract, false);
+    }
+
+    #[test]
+    fn test_to_u8() {
+        let flags = Flags {
+            zero: true,
+            subtract: false,
+            half_carry: true,
+            carry: false
+        };
+
+        assert_eq!(
+            0b10100000,
+            flags.to_u8()
+        );
     }
 
     #[test]
