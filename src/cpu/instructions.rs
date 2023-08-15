@@ -1443,6 +1443,18 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             absolute_jmp(addr)
         },
+        0xC4 => { //CALL NZ, a16
+            if cpu.flags.zero {
+                return no_call();
+            }
+
+            let addr = to16_bit(
+                cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                cpu.memory[(cpu.registers.program_counter + 2) as usize]
+            );
+
+            call(cpu, addr)
+        },
         0xC5 => push_from_register_16_bit( //PUSH BC
             cpu.registers.stack_pointer,
             MemoryChange {
@@ -1478,6 +1490,18 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.memory[(cpu.registers.program_counter + 1) as usize],
                 cpu.memory[(cpu.registers.program_counter + 2) as usize]
             ))
+        },
+        0xCC => { //CALL Z, a16
+            if !cpu.flags.zero {
+                return no_call();
+            }
+
+            let addr = to16_bit(
+                cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                cpu.memory[(cpu.registers.program_counter + 2) as usize]
+            );
+
+            call(cpu, addr)
         },
         0xCD => { //CALL a16
             let addr = to16_bit(
@@ -1515,6 +1539,18 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.memory[(cpu.registers.program_counter + 2) as usize]
             ))
         },
+        0xD4 => { //CALL NC, a16
+            if cpu.flags.carry {
+                return no_call();
+            }
+
+            let addr = to16_bit(
+                cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                cpu.memory[(cpu.registers.program_counter + 2) as usize]
+            );
+
+            call(cpu, addr)
+        },
         0xD5 => push_from_register_16_bit( //PUSH DE
             cpu.registers.stack_pointer,
             MemoryChange {
@@ -1549,6 +1585,18 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.memory[(cpu.registers.program_counter + 1) as usize],
                 cpu.memory[(cpu.registers.program_counter + 2) as usize]
             ))
+        },
+        0xDC => { //CALL C, a16
+            if !cpu.flags.carry {
+                return no_call();
+            }
+
+            let addr = to16_bit(
+                cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                cpu.memory[(cpu.registers.program_counter + 2) as usize]
+            );
+
+            call(cpu, addr)
         },
         0xE1 => pop_to_register_16_bit( //POP HL
             cpu.registers.stack_pointer,
@@ -1659,6 +1707,16 @@ fn ret(cpu: &CPU) -> StateChange {
             sp: Some(cpu.registers.stack_pointer + 2),
             ..RegisterChange::default()
         },
+        memory: MemoryChange::default()
+    }
+}
+
+fn no_call() -> StateChange {
+    StateChange {
+        byte_length: 3,
+        t_states: 12,
+        flags: FlagChange::default(),
+        register: RegisterChange::default(),
         memory: MemoryChange::default()
     }
 }

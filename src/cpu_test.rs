@@ -1846,6 +1846,32 @@ fn test_0xC3() { //JP a16
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xC4() { //CALL NZ, a16
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.zero = true;
+    cpu.registers.program_counter = 0xA034;
+    cpu.registers.stack_pointer = 0x05;
+    cpu.execute_with_args(0xC4, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(0xA037, cpu.registers.program_counter);
+    assert_eq!(0x05, cpu.registers.stack_pointer);
+    assert_eq!(0x00, cpu.memory[0x04]);
+    assert_eq!(0x00, cpu.memory[0x03]);
+
+    cpu.flags.zero = false;
+    cpu.registers.program_counter = 0xA034;
+    cpu.registers.stack_pointer = 0x05;
+    cpu.execute_with_args(0xC4, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.registers.stack_pointer);
+    assert_eq!(0xA0, cpu.memory[0x04]);
+    assert_eq!(0x34 + 3, cpu.memory[0x03]); //+3 to account for the instruction and two operands
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xC5() { //PUSH BC
     let mut cpu = prepare_cpu();
 
@@ -1912,6 +1938,32 @@ fn test_0xCA() { //JP Z a16
     cpu.execute_with_args(0xCA, Some(vec![0xC0, 0x01]));
 
     assert_eq!(0xC001, cpu.registers.program_counter);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xCC() { //CALL Z, a16
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.zero = false;
+    cpu.registers.program_counter = 0xA034;
+    cpu.registers.stack_pointer = 0x05;
+    cpu.execute_with_args(0xCC, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(0xA037, cpu.registers.program_counter);
+    assert_eq!(0x05, cpu.registers.stack_pointer);
+    assert_eq!(0x00, cpu.memory[0x04]);
+    assert_eq!(0x00, cpu.memory[0x03]);
+
+    cpu.flags.zero = true;
+    cpu.registers.program_counter = 0xA034;
+    cpu.registers.stack_pointer = 0x05;
+    cpu.execute_with_args(0xCC, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.registers.stack_pointer);
+    assert_eq!(0xA0, cpu.memory[0x04]);
+    assert_eq!(0x34 + 3, cpu.memory[0x03]); //+3 to account for the instruction and two operands
 }
 
 #[test]
@@ -1984,6 +2036,32 @@ fn test_0xD2() { //JP NC a16
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xD4() { //CALL NC, a16
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.carry = true;
+    cpu.registers.program_counter = 0xA034;
+    cpu.registers.stack_pointer = 0x05;
+    cpu.execute_with_args(0xD4, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(0xA037, cpu.registers.program_counter);
+    assert_eq!(0x05, cpu.registers.stack_pointer);
+    assert_eq!(0x00, cpu.memory[0x04]);
+    assert_eq!(0x00, cpu.memory[0x03]);
+
+    cpu.flags.carry = false;
+    cpu.registers.program_counter = 0xA034;
+    cpu.registers.stack_pointer = 0x05;
+    cpu.execute_with_args(0xD4, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.registers.stack_pointer);
+    assert_eq!(0xA0, cpu.memory[0x04]);
+    assert_eq!(0x34 + 3, cpu.memory[0x03]); //+3 to account for the instruction and two operands
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xD5() { //PUSH DE
     let mut cpu = prepare_cpu();
 
@@ -2035,6 +2113,32 @@ fn test_0xDA() { //JP C a16
     cpu.execute_with_args(0xDA, Some(vec![0xC0, 0x01]));
 
     assert_eq!(0xC001, cpu.registers.program_counter);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xDC() { //CALL C, a16
+    let mut cpu = prepare_cpu();
+
+    cpu.flags.carry = false;
+    cpu.registers.program_counter = 0xA034;
+    cpu.registers.stack_pointer = 0x05;
+    cpu.execute_with_args(0xDC, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(0xA037, cpu.registers.program_counter);
+    assert_eq!(0x05, cpu.registers.stack_pointer);
+    assert_eq!(0x00, cpu.memory[0x04]);
+    assert_eq!(0x00, cpu.memory[0x03]);
+
+    cpu.flags.carry = true;
+    cpu.registers.program_counter = 0xA034;
+    cpu.registers.stack_pointer = 0x05;
+    cpu.execute_with_args(0xDC, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.registers.stack_pointer);
+    assert_eq!(0xA0, cpu.memory[0x04]);
+    assert_eq!(0x34 + 3, cpu.memory[0x03]); //+3 to account for the instruction and two operands
 }
 
 #[test]
