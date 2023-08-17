@@ -1470,6 +1470,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ]
             }
         ),
+        0xC6 => StateChange { //ADD A, n8
+            byte_length: 2,
+            t_states: 8,
+            ..add_to_a(
+                cpu.registers.a,
+                cpu.memory[(cpu.registers.program_counter + 1) as usize]
+            )
+        },
         0xC8 => { //RET Z
             if !cpu.flags.zero {
                 return no_ret();
@@ -1566,6 +1574,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ]
             }
         ),
+        0xD6 => StateChange { //SUB A, n8
+            byte_length: 2,
+            t_states: 8,
+            ..sub_from_a(
+                cpu.registers.a,
+                cpu.memory[(cpu.registers.program_counter + 1) as usize]
+            )
+        },
         0xD8 => { //RET C
             if !cpu.flags.carry {
                 return no_ret();
@@ -1621,6 +1637,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ]
             }
         ),
+        0xE6 => StateChange { //AND A, n8
+            byte_length: 2,
+            t_states: 8,
+            ..and_to_a(
+                cpu.registers.a,
+                cpu.memory[(cpu.registers.program_counter + 1) as usize]
+            )
+        },
         0xF1 => StateChange { //POP AF
             flags: FlagChange::from_u8(cpu.memory[cpu.registers.stack_pointer as usize]),
             ..pop_to_register_16_bit(
@@ -1646,6 +1670,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ]
             }
         ),
+        0xF6 => StateChange { //OR A, n8
+            byte_length: 2,
+            t_states: 8,
+            ..or_to_a(
+                cpu.registers.a,
+                cpu.memory[(cpu.registers.program_counter + 1) as usize]
+            )
+        },
         _ => StateChange {
             byte_length: 0,
             t_states: 0,

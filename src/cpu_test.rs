@@ -1889,6 +1889,18 @@ fn test_0xC5() { //PUSH BC
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xC6() { //ADD A, n8
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0x05;
+    cpu.execute_with_args(0xC6, Some(vec![0x05]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0x0A, cpu.registers.a);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xC8() { //RET Z
     let mut cpu = prepare_cpu();
 
@@ -2079,6 +2091,18 @@ fn test_0xD5() { //PUSH DE
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xD6() { //SUB A, n8
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0x0A;
+    cpu.execute_with_args(0xD6, Some(vec![0x05]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0x05, cpu.registers.a);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xD8() { //RET C
     let mut cpu = prepare_cpu();
 
@@ -2175,6 +2199,18 @@ fn test_0xE5() { //PUSH HL
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xE6() { //AND A, n8
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0b00001010;
+    cpu.execute_with_args(0xE6, Some(vec![0b00000010]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0x02, cpu.registers.a);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xF1() { //POP AF
     let mut cpu = prepare_cpu();
 
@@ -2208,4 +2244,16 @@ fn test_0xF5() { //PUSH AF
     assert_eq!(0x03, cpu.registers.stack_pointer);
     assert_eq!(0xC0, cpu.memory[0x04]);
     assert_eq!(0xA0, cpu.memory[0x03]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xF6() { //OR A, n8
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0b00001010;
+    cpu.execute_with_args(0xF6, Some(vec![0b00000010]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0x0A, cpu.registers.a);
 }
