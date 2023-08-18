@@ -1637,8 +1637,8 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 changes: vec![
                     MemoryEdit {
                         key: to16_bit(
-                            cpu.memory[(cpu.registers.program_counter + 1) as usize],
-                            0xFF
+                            0xFF,
+                            cpu.memory[(cpu.registers.program_counter + 1) as usize]
                         ),
                         value: cpu.registers.a
                     }
@@ -1653,6 +1653,18 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..RegisterChange::default()
             }
         ),
+        0xE2 => StateChange { //LDH [C], A
+            byte_length: 1,
+            t_states: 8,
+            ..ld_to_absolute(MemoryChange {
+                changes: vec![
+                    MemoryEdit {
+                        key: to16_bit(0xFF, cpu.registers.c),
+                        value: cpu.registers.a
+                    }
+                ]
+            })
+        },
         0xE5 => push_from_register_16_bit( //PUSH HL
             cpu.registers.stack_pointer,
             MemoryChange {
@@ -1690,8 +1702,8 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             ..ld_from_absolute(RegisterChange {
                 a: {
                     let addr = to16_bit(
-                        cpu.memory[(cpu.registers.program_counter + 1) as usize],
-                        0xFF
+                        0xFF,
+                        cpu.memory[(cpu.registers.program_counter + 1) as usize]
                     );
 
                     Some(cpu.memory[addr as usize])
@@ -1708,6 +1720,18 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                     ..RegisterChange::default()
                 }
             )
+        },
+        0xF2 => StateChange { //LDH A, [C]
+            byte_length: 1,
+            t_states: 8,
+            ..ld_from_absolute(RegisterChange {
+                a: {
+                    let addr = to16_bit(0xFF, cpu.registers.c);
+
+                    Some(cpu.memory[addr as usize])
+                },
+                ..RegisterChange::default()
+            })
         },
         0xF5 => push_from_register_16_bit( //PUSH AF
             cpu.registers.stack_pointer,

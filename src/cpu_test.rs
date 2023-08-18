@@ -2204,7 +2204,7 @@ fn test_0xE0() { //LDH [a8], A
     cpu.execute_with_args(0xE0, Some(vec![0xC0]));
 
     assert_eq!(cpu.registers.program_counter, 2);
-    assert_eq!(0xAF, cpu.memory[0xC0FF]);
+    assert_eq!(0xAF, cpu.memory[0xFFC0]);
 }
 
 #[test]
@@ -2220,6 +2220,19 @@ fn test_0xE1() { //POP HL
 
     assert_eq!(0x05, cpu.registers.stack_pointer);
     assert_eq!(0xC001, cpu.registers.hl());
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xE2() { //LDH [C], A
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0xAF;
+    cpu.registers.c = 0xC0;
+    cpu.execute(0xE2);
+
+    assert_eq!(cpu.registers.program_counter, 1);
+    assert_eq!(0xAF, cpu.memory[0xFFC0]);
 }
 
 #[test]
@@ -2256,7 +2269,7 @@ fn test_0xE6() { //AND A, n8
 fn test_0xF0() { //LDH A, [a8]
     let mut cpu = prepare_cpu();
 
-    cpu.memory[0xA0FF] = 0x69;
+    cpu.memory[0xFFA0] = 0x69;
     cpu.execute_with_args(0xF0, Some(vec![0xA0]));
 
     assert_eq!(cpu.registers.program_counter, 2);
@@ -2280,6 +2293,19 @@ fn test_0xF1() { //POP AF
     assert!(!cpu.flags.subtract);
     assert!(cpu.flags.half_carry);
     assert!(!cpu.flags.carry);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xF2() { //LDH A, [C]
+    let mut cpu = prepare_cpu();
+
+    cpu.memory[0xFFA0] = 0x69;
+    cpu.registers.c = 0xA0;
+    cpu.execute(0xF2);
+
+    assert_eq!(cpu.registers.program_counter, 1);
+    assert_eq!(cpu.registers.a, 0x69);
 }
 
 #[test]
