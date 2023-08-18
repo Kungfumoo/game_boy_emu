@@ -2197,6 +2197,18 @@ fn test_0xDC() { //CALL C, a16
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xE0() { //LDH [a8], A
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0xAF;
+    cpu.execute_with_args(0xE0, Some(vec![0xC0]));
+
+    assert_eq!(cpu.registers.program_counter, 2);
+    assert_eq!(0xAF, cpu.memory[0xC0FF]);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xE1() { //POP HL
     let mut cpu = prepare_cpu();
 
@@ -2237,6 +2249,18 @@ fn test_0xE6() { //AND A, n8
 
     assert_eq!(2, cpu.registers.program_counter);
     assert_eq!(0x02, cpu.registers.a);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xF0() { //LDH A, [a8]
+    let mut cpu = prepare_cpu();
+
+    cpu.memory[0xA0FF] = 0x69;
+    cpu.execute_with_args(0xF0, Some(vec![0xA0]));
+
+    assert_eq!(cpu.registers.program_counter, 2);
+    assert_eq!(cpu.registers.a, 0x69);
 }
 
 #[test]

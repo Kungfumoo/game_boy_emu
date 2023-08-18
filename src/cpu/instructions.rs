@@ -1630,6 +1630,21 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu,
             0x18
         ),
+        0xE0 => StateChange { //LDH [a8], A
+            byte_length: 2,
+            t_states: 12,
+            ..ld_to_absolute(MemoryChange {
+                changes: vec![
+                    MemoryEdit {
+                        key: to16_bit(
+                            cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                            0xFF
+                        ),
+                        value: cpu.registers.a
+                    }
+                ]
+            })
+        },
         0xE1 => pop_to_register_16_bit( //POP HL
             cpu.registers.stack_pointer,
             RegisterChange {
@@ -1669,6 +1684,21 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu,
             0x28
         ),
+        0xF0 => StateChange { //LDH A, [a8]
+            byte_length: 2,
+            t_states: 12,
+            ..ld_from_absolute(RegisterChange {
+                a: {
+                    let addr = to16_bit(
+                        cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                        0xFF
+                    );
+
+                    Some(cpu.memory[addr as usize])
+                },
+                ..RegisterChange::default()
+            })
+        },
         0xF1 => StateChange { //POP AF
             flags: FlagChange::from_u8(cpu.memory[cpu.registers.stack_pointer as usize]),
             ..pop_to_register_16_bit(
