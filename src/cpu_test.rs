@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use super::CPU;
-use crate::cpu::flags::is_half_carry_subtract;
+use crate::cpu::{flags::is_half_carry_subtract, registers::to16_bit};
 
 const PROGRAM_COUNTER: u16 = 0;
 
@@ -1991,6 +1993,34 @@ fn test_0xCD() { //CALL a16
     assert_eq!(0x03, cpu.registers.stack_pointer);
     assert_eq!(0xA0, cpu.memory[0x04]);
     assert_eq!(0x34 + 3, cpu.memory[0x03]); //+3 to account for the instruction and two operands
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_rst_instructions() { //RST vec
+    let instructions: HashMap<u8, u8> = HashMap::from([
+        (0xC7, 0x00),
+        (0xD7, 0x10),
+        (0xE7, 0x20),
+        (0xF7, 0x30),
+        (0xCF, 0x08),
+        (0xDF, 0x18),
+        (0xEF, 0x28),
+        (0xFF, 0x38)
+    ]);
+
+    for (opcode, vector) in instructions.iter() {
+        let mut cpu = prepare_cpu();
+
+        cpu.registers.program_counter = 0xA034;
+        cpu.registers.stack_pointer = 0x05;
+        cpu.execute(*opcode);
+
+        assert_eq!(to16_bit(*vector, 0x00), cpu.registers.program_counter, "executing {:#02x}", opcode);
+        assert_eq!(0x03, cpu.registers.stack_pointer, "executing {:#02x}", opcode);
+        assert_eq!(0xA0, cpu.memory[0x04], "executing {:#02x}", opcode);
+        assert_eq!(0x34 + 3, cpu.memory[0x03], "executing {:#02x}", opcode); //+3 to account for the instruction and two operands
+    }
 }
 
 #[test]

@@ -1478,6 +1478,10 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.memory[(cpu.registers.program_counter + 1) as usize]
             )
         },
+        0xC7 => restart( //RST $00
+            cpu,
+            0x00
+        ),
         0xC8 => { //RET Z
             if !cpu.flags.zero {
                 return no_ret();
@@ -1519,6 +1523,10 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             call(cpu, addr)
         },
+        0xCF => restart( //RST $08
+            cpu,
+            0x08
+        ),
         0xD0 => { //RET NC
             if cpu.flags.carry {
                 return no_ret();
@@ -1582,6 +1590,10 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.memory[(cpu.registers.program_counter + 1) as usize]
             )
         },
+        0xD7 => restart( //RST $10
+            cpu,
+            0x10
+        ),
         0xD8 => { //RET C
             if !cpu.flags.carry {
                 return no_ret();
@@ -1614,6 +1626,10 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             call(cpu, addr)
         },
+        0xDF => restart( //RST $18
+            cpu,
+            0x18
+        ),
         0xE1 => pop_to_register_16_bit( //POP HL
             cpu.registers.stack_pointer,
             RegisterChange {
@@ -1645,6 +1661,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.memory[(cpu.registers.program_counter + 1) as usize]
             )
         },
+        0xE7 => restart( //RST $20
+            cpu,
+            0x20
+        ),
+        0xEF => restart( //RST $28
+            cpu,
+            0x28
+        ),
         0xF1 => StateChange { //POP AF
             flags: FlagChange::from_u8(cpu.memory[cpu.registers.stack_pointer as usize]),
             ..pop_to_register_16_bit(
@@ -1678,6 +1702,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.memory[(cpu.registers.program_counter + 1) as usize]
             )
         },
+        0xF7 => restart( //RST $30
+            cpu,
+            0x30
+        ),
+        0xFF => restart( //RST $38
+            cpu,
+            0x38
+        ),
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -1750,6 +1782,14 @@ fn no_call() -> StateChange {
         flags: FlagChange::default(),
         register: RegisterChange::default(),
         memory: MemoryChange::default()
+    }
+}
+
+fn restart(cpu: &CPU, vector: u8) -> StateChange {
+    StateChange {
+        byte_length: 1,
+        t_states: 16,
+        ..call(cpu, to16_bit(vector, 0x00))
     }
 }
 
