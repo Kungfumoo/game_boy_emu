@@ -1731,6 +1731,11 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu,
             0x20
         ),
+        0xE9 => StateChange { //JP HL
+            byte_length: 1,
+            t_states: 4,
+            ..absolute_jmp(cpu.registers.hl())
+        },
         0xEE => StateChange { //XOR A, n8
             byte_length: 2,
             t_states: 8,

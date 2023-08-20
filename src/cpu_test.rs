@@ -2312,6 +2312,18 @@ fn test_0xE6() { //AND A, n8
 
 #[test]
 #[allow(non_snake_case)]
+fn text_0xE9() { //JP HL
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.execute(0xE9);
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xEE() { //XOR A, n8
     let mut cpu = prepare_cpu();
 
