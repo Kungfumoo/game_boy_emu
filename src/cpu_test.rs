@@ -2358,7 +2358,10 @@ fn test_0xF1() { //POP AF
     cpu.execute(0xF1);
 
     assert_eq!(0x05, cpu.registers.stack_pointer);
-    assert_eq!(0xC0A0, cpu.registers.af(&cpu.flags));
+    assert_eq!(0xC0A0, to16_bit(
+        cpu.registers.a,
+        cpu.flags.to_u8()
+    ));
     assert!(cpu.flags.zero);
     assert!(!cpu.flags.subtract);
     assert!(cpu.flags.half_carry);

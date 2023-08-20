@@ -101,25 +101,11 @@ pub fn is_half_carry_add_16(a: u16, b: u16) -> bool {
     (add16_bit(a, b) & 0x100) == 0x100
 }
 
-pub fn is_half_carry_subtract_16(a: u16, b: u16) -> bool {
-    let a = a & 0xFF;
-    let b = b & 0xFF;
-
-    (sub16_bit(a, b) & 0x100) == 0x100
-}
-
 pub fn is_carry_add_16(a: u16, b: u16) -> bool {
     let a = a as u32 & 0xFFF;
     let b = b as u32 & 0xFFF;
 
     (a.wrapping_add(b) & 0x1000) == 0x1000
-}
-
-pub fn is_carry_subtract_16(a: u16, b: u16) -> bool {
-    let a = a as u32 & 0xFFF;
-    let b = b as u32 & 0xFFF;
-
-    (a.saturating_add(b) & 0x1000) == 0x1000
 }
 
 #[cfg(test)]
@@ -222,20 +208,8 @@ mod tests {
     }
 
     #[test]
-    fn test_is_half_carry_subtract_16() {
-        assert!(is_half_carry_subtract_16(230, 255));
-        assert!(!is_half_carry_subtract_16(2, 1));
-    }
-
-    #[test]
     fn test_is_carry_add_16() {
         assert!(is_carry_add_16(65535, 1));
         assert!(!is_carry_add_16(6000, 443));
-    }
-
-    #[test]
-    fn test_is_carry_subtract_16() {
-        assert!(is_carry_subtract_16(65535, 63000));
-        assert!(!is_carry_subtract_16(2, 1));
     }
 }

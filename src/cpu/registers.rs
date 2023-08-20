@@ -1,5 +1,3 @@
-use super::flags::Flags;
-
 pub struct RegisterChange {
     pub pc: Option<u16>,
     pub sp: Option<u16>,
@@ -93,10 +91,6 @@ impl Registers {
         }
     }
 
-    pub fn af(&self, flags: &Flags) -> u16 {
-        to16_bit(self.a, flags.to_u8())
-    }
-
     pub fn bc(&self) -> u16 {
         to16_bit(self.b, self.c)
     }
@@ -141,21 +135,6 @@ mod tests {
         assert_eq!(registers.b, 0x04);
         assert_eq!(registers.c, 0x07);
         assert_eq!(registers.a, 0x00);
-    }
-
-    #[test]
-    fn test_af() {
-        let flags = Flags {
-            zero: true,
-            subtract: false,
-            half_carry: true,
-            carry: false
-        };
-        let mut registers = Registers::new();
-
-        registers.a = 0x01;
-
-        assert_eq!(registers.af(&flags), 0x01A0);
     }
 
     #[test]
