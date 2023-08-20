@@ -1997,6 +1997,19 @@ fn test_0xCD() { //CALL a16
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xCE() { //ADC A, n8
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0x0A;
+    cpu.flags.carry = true;
+    cpu.execute_with_args(0xCE, Some(vec![0x01]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0x0C, cpu.registers.a);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_rst_instructions() { //RST vec
     let instructions: HashMap<u8, u8> = HashMap::from([
         (0xC7, 0x00),
@@ -2197,6 +2210,19 @@ fn test_0xDC() { //CALL C, a16
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xDE() { //SBC A, n8
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0x0C;
+    cpu.flags.carry = true;
+    cpu.execute_with_args(0xDE, Some(vec![0x01]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0x0A, cpu.registers.a);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xE0() { //LDH [a8], A
     let mut cpu = prepare_cpu();
 
@@ -2262,6 +2288,18 @@ fn test_0xE6() { //AND A, n8
 
     assert_eq!(2, cpu.registers.program_counter);
     assert_eq!(0x02, cpu.registers.a);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xEE() { //XOR A, n8
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0b00000101;
+    cpu.execute_with_args(0xEE, Some(vec![0b00000001]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0b00000100, cpu.registers.a);
 }
 
 #[test]
@@ -2369,4 +2407,18 @@ fn test_0xFB() { //EI
     cpu.execute(0x04); //LD B, B - just to execute something else to set the ime
     assert!(!cpu.ime_scheduled);
     assert!(cpu.ime);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xFE() { //CP A, n8
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0x0A;
+    cpu.execute_with_args(0xFE, Some(vec![0x0A]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0x0A, cpu.registers.a);
+    assert!(cpu.flags.subtract);
+    assert!(cpu.flags.zero);
 }

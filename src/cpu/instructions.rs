@@ -1530,6 +1530,20 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             call(cpu, addr)
         },
+        0xCE => { //ADC A, n8
+            let mut operand = cpu.memory[(cpu.registers.program_counter + 1) as usize];
+
+            if cpu.flags.carry {
+                operand = add8_bit(operand, 1);
+            }
+
+            StateChange {
+                byte_length: 2,
+                t_states: 8,
+                ..add_to_a(cpu.registers.a, operand)
+            }
+
+        },
         0xCF => restart( //RST $08
             cpu,
             0x08
@@ -1633,6 +1647,19 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             call(cpu, addr)
         },
+        0xDE => { //SBC A, n8
+            let mut operand = cpu.memory[(cpu.registers.program_counter + 1) as usize];
+
+            if cpu.flags.carry {
+                operand = add8_bit(operand, 1);
+            }
+
+            StateChange {
+                byte_length: 2,
+                t_states: 8,
+                ..sub_from_a(cpu.registers.a, operand)
+            }
+        },
         0xDF => restart( //RST $18
             cpu,
             0x18
@@ -1699,6 +1726,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu,
             0x20
         ),
+        0xEE => StateChange { //XOR A, n8
+            byte_length: 2,
+            t_states: 8,
+            ..xor_to_a(
+                cpu.registers.a,
+                cpu.memory[(cpu.registers.program_counter + 1) as usize]
+            )
+        },
         0xEF => restart( //RST $28
             cpu,
             0x28
@@ -1782,6 +1817,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             flags: FlagChange::default(),
             register: RegisterChange::default(),
             memory: MemoryChange::default()
+        },
+        0xFE => StateChange { //CP A, n8
+            byte_length: 2,
+            t_states: 8,
+            ..cp_to_a(
+                cpu.registers.a,
+                cpu.memory[(cpu.registers.program_counter + 1) as usize]
+            )
         },
         0xFF => restart( //RST $38
             cpu,
