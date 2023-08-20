@@ -1,5 +1,6 @@
 use super::{
     CPU,
+    ImeStatus,
     registers::{to8_bit, to16_bit, RegisterChange},
     flags::{
         FlagChange,
@@ -17,7 +18,7 @@ use super::{
 pub struct StateChange {
     pub byte_length: i16,
     pub t_states: u8,
-    pub ime: Option<bool>,
+    pub ime: Option<ImeStatus>,
     pub flags: FlagChange,
     pub register: RegisterChange,
     pub memory: MemoryChange
@@ -1625,6 +1626,10 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..ret(cpu)
             }
         },
+        0xD9 => StateChange { //RETI
+            ime: Some(ImeStatus::SET),
+            ..ret(cpu)
+        },
         0xDA => { //JP C, a16
             if !cpu.flags.carry {
                 return no_absolute_jmp();
@@ -1778,7 +1783,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         0xF3 => StateChange { //DI
             byte_length: 1,
             t_states: 4,
-            ime: Some(false),
+            ime: Some(ImeStatus::UNSET),
             flags: FlagChange::default(),
             register: RegisterChange::default(),
             memory: MemoryChange::default()
@@ -1813,7 +1818,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         0xFB => StateChange { //EI
             byte_length: 1,
             t_states: 4,
-            ime: Some(true),
+            ime: Some(ImeStatus::SCHEDULED),
             flags: FlagChange::default(),
             register: RegisterChange::default(),
             memory: MemoryChange::default()

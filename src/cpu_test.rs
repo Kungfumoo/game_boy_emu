@@ -1,7 +1,11 @@
 use std::collections::HashMap;
 
 use super::CPU;
-use crate::cpu::{flags::is_half_carry_subtract, registers::to16_bit};
+use crate::cpu::{
+    flags::is_half_carry_subtract,
+    registers::to16_bit,
+    ImeStatus
+};
 
 const PROGRAM_COUNTER: u16 = 0;
 
@@ -2168,6 +2172,22 @@ fn test_0xD8() { //RET C
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xD9() { //RETI
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x03;
+    cpu.memory[0x04] = 0xC0;
+    cpu.memory[0x03] = 0x01;
+
+    cpu.execute(0xD9);
+
+    assert_eq!(0xC001, cpu.registers.program_counter);
+    assert_eq!(0x05, cpu.registers.stack_pointer);
+    assert!(matches!(cpu.ime, ImeStatus::SET));
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xDA() { //JP C a16
     let mut cpu = prepare_cpu();
 
@@ -2351,16 +2371,11 @@ fn test_0xF2() { //LDH A, [C]
 fn test_0xF3() { //DI
     let mut cpu = prepare_cpu();
 
-    cpu.ime = true;
+    cpu.ime = ImeStatus::SET;
     cpu.execute(0xF3);
 
     assert_eq!(1, cpu.registers.program_counter);
-    assert!(!cpu.ime);
-
-    cpu.ime_scheduled = true;
-    cpu.execute(0xF3);
-
-    assert!(!cpu.ime_scheduled);
+    assert!(matches!(cpu.ime, ImeStatus::UNSET));
 }
 
 #[test]
@@ -2401,12 +2416,10 @@ fn test_0xFB() { //EI
     cpu.execute(0xFB);
 
     assert_eq!(1, cpu.registers.program_counter);
-    assert!(cpu.ime_scheduled);
-    assert!(!cpu.ime);
+    assert!(matches!(cpu.ime, ImeStatus::SCHEDULED));
 
     cpu.execute(0x04); //LD B, B - just to execute something else to set the ime
-    assert!(!cpu.ime_scheduled);
-    assert!(cpu.ime);
+    assert!(matches!(cpu.ime, ImeStatus::SET));
 }
 
 #[test]
