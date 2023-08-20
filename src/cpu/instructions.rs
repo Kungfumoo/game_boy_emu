@@ -17,6 +17,7 @@ use super::{
 pub struct StateChange {
     pub byte_length: i16,
     pub t_states: u8,
+    pub ime: Option<bool>,
     pub flags: FlagChange,
     pub register: RegisterChange,
     pub memory: MemoryChange
@@ -101,6 +102,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x08 => StateChange { //LD [n16], SP (load stack pointer into memory)
             byte_length: 3,
             t_states: 20,
+            ime: Option::None,
             flags: FlagChange::default(),
             register: RegisterChange::default(),
             memory: {
@@ -465,6 +467,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             StateChange {
                 byte_length: 1,
                 t_states: 4,
+                ime: Option::None,
                 memory: MemoryChange::default(),
                 flags: FlagChange {
                     carry: Some(set_carry),
@@ -549,6 +552,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x2F => StateChange { //CPL
             byte_length: 1,
             t_states: 4,
+            ime: Option::None,
             flags: FlagChange {
                 subtract: Some(true),
                 half_carry: Some(true),
@@ -658,6 +662,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             StateChange {
                 byte_length: 2,
                 t_states: 12,
+                ime: Option::None,
                 flags: FlagChange::default(),
                 register: RegisterChange::default(),
                 memory: MemoryChange {
@@ -673,6 +678,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x37 => StateChange { //SCF (Set Carry Flag)
             byte_length: 1,
             t_states: 4,
+            ime: Option::None,
             flags: FlagChange {
                 subtract: Some(false),
                 half_carry: Some(false),
@@ -751,6 +757,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x3F => StateChange { //CCF (Complement/Invert Carry Flag)
             byte_length: 1,
             t_states: 4,
+            ime: Option::None,
             flags: FlagChange {
                 subtract: Some(false),
                 half_carry: Some(false),
@@ -1733,6 +1740,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ..RegisterChange::default()
             })
         },
+        0xF3 => StateChange { //DI
+            byte_length: 1,
+            t_states: 4,
+            ime: Some(false),
+            flags: FlagChange::default(),
+            register: RegisterChange::default(),
+            memory: MemoryChange::default()
+        },
         0xF5 => push_from_register_16_bit( //PUSH AF
             cpu.registers.stack_pointer,
             MemoryChange {
@@ -1760,6 +1775,14 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu,
             0x30
         ),
+        0xFB => StateChange { //EI
+            byte_length: 1,
+            t_states: 4,
+            ime: Some(true),
+            flags: FlagChange::default(),
+            register: RegisterChange::default(),
+            memory: MemoryChange::default()
+        },
         0xFF => restart( //RST $38
             cpu,
             0x38
@@ -1767,6 +1790,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
+            ime: Option::None,
             flags: FlagChange::default(),
             register: RegisterChange::default(),
             memory: MemoryChange::default()
@@ -1778,6 +1802,7 @@ fn push_from_register_16_bit(sp: u16, change: MemoryChange) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 16,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: RegisterChange {
             sp: Some(sp - 2),
@@ -1791,6 +1816,7 @@ fn pop_to_register_16_bit(sp: u16, change: RegisterChange) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 12,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: RegisterChange {
             sp: Some(sp + 2),
@@ -1804,6 +1830,7 @@ fn no_ret() -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 8,
+        ime: Option::None,
         flags: FlagChange::default(),
         memory: MemoryChange::default(),
         register: RegisterChange::default()
@@ -1819,6 +1846,7 @@ fn ret(cpu: &CPU) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 16,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: RegisterChange {
             pc: Some(new_addr),
@@ -1833,6 +1861,7 @@ fn no_call() -> StateChange {
     StateChange {
         byte_length: 3,
         t_states: 12,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: RegisterChange::default(),
         memory: MemoryChange::default()
@@ -1855,6 +1884,7 @@ fn call(cpu: &CPU, new_addr: u16) -> StateChange {
     StateChange {
         byte_length: 3,
         t_states: 24,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: RegisterChange {
             pc: Some(new_addr),
@@ -1880,6 +1910,7 @@ fn absolute_jmp(address: u16) -> StateChange {
     StateChange {
         byte_length: 3,
         t_states: 16,
+        ime: Option::None,
         register: RegisterChange {
             pc: Some(address),
             ..RegisterChange::default()
@@ -1893,6 +1924,7 @@ fn no_absolute_jmp() -> StateChange {
     StateChange {
         byte_length: 3,
         t_states: 12,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: RegisterChange::default(),
         memory: MemoryChange::default()
@@ -1903,6 +1935,7 @@ fn no_relative_jmp() -> StateChange {
     StateChange {
         byte_length: 2,
         t_states: 8,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: RegisterChange::default(),
         memory: MemoryChange::default()
@@ -1913,6 +1946,7 @@ fn relative_jmp(modifier: i8) -> StateChange {
     StateChange {
         byte_length: (2 + modifier).into(),
         t_states: 12,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: RegisterChange::default(),
         memory: MemoryChange::default()
@@ -1925,6 +1959,7 @@ fn cp_to_a(a_value: u8, operand: u8) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 4,
+        ime: Option::None,
         flags: FlagChange {
             subtract: Some(true),
             carry: Some(is_carry_subtract(a_value, operand)),
@@ -1942,6 +1977,7 @@ fn or_to_a(a_value: u8, operand: u8) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 4,
+        ime: Option::None,
         flags: FlagChange {
             subtract: Some(false),
             carry: Some(false),
@@ -1962,6 +1998,7 @@ fn xor_to_a(a_value: u8, operand: u8) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 4,
+        ime: Option::None,
         flags: FlagChange {
             subtract: Some(false),
             carry: Some(false),
@@ -1982,6 +2019,7 @@ fn and_to_a(a_value: u8, operand: u8) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 4,
+        ime: Option::None,
         flags: FlagChange {
             subtract: Some(false),
             carry: Some(false),
@@ -2002,6 +2040,7 @@ fn add_to_a(a_value: u8, operand: u8) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 4,
+        ime: Option::None,
         flags: FlagChange {
             subtract: Some(false),
             carry: Some(is_carry_add(a_value, operand)),
@@ -2022,6 +2061,7 @@ fn sub_from_a(a_value: u8, operand: u8) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 4,
+        ime: Option::None,
         flags: FlagChange {
             subtract: Some(true),
             carry: Some(is_carry_subtract(a_value, operand)),
@@ -2040,6 +2080,7 @@ fn add_to_hl(hl_value: u16, operand: u16) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 8,
+        ime: Option::None,
         flags: FlagChange {
             subtract: Some(false),
             carry: Some(is_carry_add_16(hl_value, operand)),
@@ -2063,6 +2104,7 @@ fn dec_absolute(change: MemoryChange, set_zero: bool, set_half_carry: bool) -> S
     StateChange {
         byte_length: 1,
         t_states: 12,
+        ime: Option::None,
         flags: FlagChange {
             zero: Option::Some(set_zero),
             subtract: Option::Some(true),
@@ -2078,6 +2120,7 @@ fn dec8_bit(change: RegisterChange, set_zero: bool, set_half_carry: bool) -> Sta
     StateChange {
         byte_length: 1,
         t_states: 4,
+        ime: Option::None,
         flags: FlagChange {
             zero: Option::Some(set_zero),
             subtract: Option::Some(true),
@@ -2093,6 +2136,7 @@ fn dec16_bit(change: RegisterChange) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 8,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: change,
         memory: MemoryChange::default()
@@ -2103,6 +2147,7 @@ fn inc_absolute(change: MemoryChange, set_zero: bool, set_half_carry: bool) -> S
     StateChange {
         byte_length: 1,
         t_states: 12,
+        ime: Option::None,
         flags: FlagChange {
             zero: Option::Some(set_zero),
             subtract: Option::Some(false),
@@ -2118,6 +2163,7 @@ fn inc8_bit(change: RegisterChange, set_zero: bool, set_half_carry: bool) -> Sta
     StateChange {
         byte_length: 1,
         t_states: 4,
+        ime: Option::None,
         flags: FlagChange {
             zero: Option::Some(set_zero),
             subtract: Option::Some(false),
@@ -2133,6 +2179,7 @@ fn inc16_bit(change: RegisterChange) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 8,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: change,
         memory: MemoryChange::default()
@@ -2143,6 +2190,7 @@ fn ld_to_absolute(change: MemoryChange) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 8,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: RegisterChange::default(),
         memory: change
@@ -2153,6 +2201,7 @@ fn ld_from_absolute(change: RegisterChange) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 8,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: change,
         memory: MemoryChange::default()
@@ -2163,6 +2212,7 @@ fn ld_immediate(change: RegisterChange) -> StateChange {
     StateChange {
         byte_length: 2,
         t_states: 8,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: change,
         memory: MemoryChange::default()
@@ -2173,6 +2223,7 @@ fn ld16_immediate(change: RegisterChange) -> StateChange {
     StateChange {
         byte_length: 3,
         t_states: 12,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: change,
         memory: MemoryChange::default()
@@ -2183,6 +2234,7 @@ fn ld_register_to_register(change: RegisterChange) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 4,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: change,
         memory: MemoryChange::default()
@@ -2193,6 +2245,7 @@ fn rotate_register(change: RegisterChange, set_carry: bool) -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 4,
+        ime: Option::None,
         flags: FlagChange {
             carry: Some(set_carry),
             ..FlagChange::reset()
@@ -2207,6 +2260,7 @@ fn nop() -> StateChange {
     StateChange {
         byte_length: 1,
         t_states: 4,
+        ime: Option::None,
         flags: FlagChange::default(),
         register: RegisterChange::default(),
         memory: MemoryChange::default()

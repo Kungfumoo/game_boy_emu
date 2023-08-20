@@ -2310,6 +2310,23 @@ fn test_0xF2() { //LDH A, [C]
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xF3() { //DI
+    let mut cpu = prepare_cpu();
+
+    cpu.ime = true;
+    cpu.execute(0xF3);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert!(!cpu.ime);
+
+    cpu.ime_scheduled = true;
+    cpu.execute(0xF3);
+
+    assert!(!cpu.ime_scheduled);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xF5() { //PUSH AF
     let mut cpu = prepare_cpu();
 
@@ -2336,4 +2353,20 @@ fn test_0xF6() { //OR A, n8
 
     assert_eq!(2, cpu.registers.program_counter);
     assert_eq!(0x0A, cpu.registers.a);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xFB() { //EI
+    let mut cpu = prepare_cpu();
+
+    cpu.execute(0xFB);
+
+    assert_eq!(1, cpu.registers.program_counter);
+    assert!(cpu.ime_scheduled);
+    assert!(!cpu.ime);
+
+    cpu.execute(0x04); //LD B, B - just to execute something else to set the ime
+    assert!(!cpu.ime_scheduled);
+    assert!(cpu.ime);
 }

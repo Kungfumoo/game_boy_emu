@@ -17,7 +17,9 @@ mod cpu_test;
 pub struct CPU {
     memory: Memory,
     registers: Registers,
-    flags: Flags
+    flags: Flags,
+    ime: bool, //interupt master enable flag - https://gbdev.io/pandocs/Interrupts.html
+    ime_scheduled: bool //When EI is called to enable IME, it is only enabled after the next instruction, schedule first then set ime after next execution
 }
 
 impl CPU {
@@ -30,7 +32,9 @@ impl CPU {
                 subtract: false,
                 half_carry: false,
                 carry: false
-            }
+            },
+            ime: false,
+            ime_scheduled: false
         }
     }
 
@@ -38,6 +42,7 @@ impl CPU {
         println!("\n===CPU STATUS===");
         println!("PC: {}", self.registers.program_counter);
         println!("SP: {}", self.registers.stack_pointer);
+        println!("IME: {}", self.ime);
         println!(
             "==REG==\nA: {}, B: {}, C: {}, D: {}, E: {}, F: {}, H: {}, L: {}",
             self.registers.a,
@@ -100,6 +105,20 @@ impl CPU {
         );
 
         //TODO: t states - according to this article: https://forums.nesdev.org/viewtopic.php?t=14014 we may not need to care
+
+        if self.ime_scheduled {
+            self.ime_scheduled = false;
+            self.ime = true;
+        }
+
+        if let Some(ime_set) = change.ime {
+            if ime_set {
+                self.ime_scheduled = true;
+            } else {
+                self.ime = false;
+                self.ime_scheduled = false;
+            }
+        }
 
         self.registers.update(&change.register);
         self.flags.update(&change.flags);
