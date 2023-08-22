@@ -26,7 +26,7 @@ pub struct StateChange {
 
 //How to interpret instruction comments:
 //INC A = Increment the value in register A
-//INC (A) = Increment the value at the memory address that the A register contains.
+//INC (A) or INC [A] = Increment the value at the memory address that the A register contains.
 pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
     match op_code {
         0x00 => nop(),
@@ -1761,6 +1761,21 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             t_states: 4,
             ..absolute_jmp(cpu.registers.hl())
         },
+        0xEA => StateChange { //LD [a16], A
+            byte_length: 3,
+            t_states: 16,
+            ..ld_to_absolute(
+                MemoryChange {
+                    changes: vec![MemoryEdit {
+                        key: to16_bit(
+                            cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                            cpu.memory[(cpu.registers.program_counter + 2) as usize],
+                        ),
+                        value: cpu.registers.a
+                    }]
+                }
+            )
+        },
         0xEE => StateChange { //XOR A, n8
             byte_length: 2,
             t_states: 8,
@@ -1883,6 +1898,19 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                     ..RegisterChange::default()
                 }
             )
+        },
+        0xFA => StateChange { //LD A, [a16]
+            byte_length: 3,
+            t_states: 16,
+            ..ld_from_absolute(RegisterChange {
+                a: Some(
+                    cpu.memory[to16_bit(
+                        cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                        cpu.memory[(cpu.registers.program_counter + 2) as usize],
+                    ) as usize]
+                ),
+                ..RegisterChange::default()
+            })
         },
         0xFB => StateChange { //EI
             byte_length: 1,

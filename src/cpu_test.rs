@@ -2349,6 +2349,18 @@ fn text_0xE9() { //JP HL
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xEA() { //LD [a16], A
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.a = 0xAF;
+    cpu.execute_with_args(0xEA, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(3, cpu.registers.program_counter);
+    assert_eq!(0xAF, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn test_0xEE() { //XOR A, n8
     let mut cpu = prepare_cpu();
 
@@ -2486,6 +2498,18 @@ fn test_0xF9() { //LD SP, HL
 
     assert_eq!(1, cpu.registers.program_counter);
     assert_eq!(0xC001, cpu.registers.stack_pointer);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_0xFA() { //LD A, [a16]
+    let mut cpu = prepare_cpu();
+
+    cpu.memory[0xC001] = 0x69;
+    cpu.execute_with_args(0xFA, Some(vec![0xC0, 0x01]));
+
+    assert_eq!(3, cpu.registers.program_counter);
+    assert_eq!(0x69, cpu.registers.a);
 }
 
 #[test]
