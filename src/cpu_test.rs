@@ -2312,6 +2312,31 @@ fn test_0xE6() { //AND A, n8
 
 #[test]
 #[allow(non_snake_case)]
+fn test_0xE8() { //ADD SP, e8
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.stack_pointer = 0x64; //100
+    cpu.execute_with_args(0xE8, Some(vec![0b00110101])); //+53 (signed)
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0x99, cpu.registers.stack_pointer); //153
+    assert!(!cpu.flags.subtract);
+    assert!(!cpu.flags.zero);
+    assert!(!cpu.flags.carry);
+    assert!(!cpu.flags.half_carry);
+
+    cpu.registers.stack_pointer = 0x64; //100
+    cpu.execute_with_args(0xE8, Some(vec![0b10110101])); //-75 (signed)
+
+    assert_eq!(0x19, cpu.registers.stack_pointer); //25
+    assert!(!cpu.flags.subtract);
+    assert!(!cpu.flags.zero);
+    assert!(cpu.flags.carry);
+    assert!(cpu.flags.half_carry);
+}
+
+#[test]
+#[allow(non_snake_case)]
 fn text_0xE9() { //JP HL
     let mut cpu = prepare_cpu();
 

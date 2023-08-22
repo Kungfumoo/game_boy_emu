@@ -1731,6 +1731,31 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu,
             0x20
         ),
+        0xE8 => { //ADD SP, e8
+            //operand is SIGNED
+            let mut operand = cpu.memory[(cpu.registers.program_counter + 1) as usize] as u16;
+
+            if operand & 0x80 != 0 { //check if negative
+                operand = 0xFF00 | operand; //convert to signed 16bit
+            }
+
+            StateChange {
+                byte_length: 2,
+                t_states: 16,
+                ime: None,
+                flags: FlagChange {
+                    zero: Some(false),
+                    subtract: Some(false),
+                    half_carry: Some(is_half_carry_add_16(cpu.registers.stack_pointer, operand)),
+                    carry: Some(is_carry_add_16(cpu.registers.stack_pointer, operand))
+                },
+                register: RegisterChange {
+                    sp: Some(add16_bit(cpu.registers.stack_pointer, operand)),
+                    ..RegisterChange::default()
+                },
+                memory: MemoryChange::default()
+            }
+        },
         0xE9 => StateChange { //JP HL
             byte_length: 1,
             t_states: 4,
