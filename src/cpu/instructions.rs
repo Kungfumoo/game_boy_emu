@@ -1845,6 +1845,45 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu,
             0x30
         ),
+        0xF8 => { //LD HL, SP + e8
+            //operand is SIGNED
+            let mut operand = cpu.memory[(cpu.registers.program_counter + 1) as usize] as u16;
+
+            if operand & 0x80 != 0 { //check if negative
+                operand = 0xFF00 | operand; //convert to signed 16bit
+            }
+
+            let (h, l) = to8_bit(
+                add16_bit(cpu.registers.stack_pointer, operand)
+            );
+
+            StateChange {
+                byte_length: 2,
+                t_states: 12,
+                ime: None,
+                flags: FlagChange {
+                    zero: Some(false),
+                    subtract: Some(false),
+                    half_carry: Some(is_half_carry_add_16(cpu.registers.stack_pointer, operand)),
+                    carry: Some(is_carry_add_16(cpu.registers.stack_pointer, operand))
+                },
+                register: RegisterChange {
+                    h: Some(h),
+                    l: Some(l),
+                    ..RegisterChange::default()
+                },
+                memory: MemoryChange::default()
+            }
+        },
+        0xF9 => StateChange { //LD SP, HL
+            t_states: 8,
+            ..ld_register_to_register(
+                RegisterChange {
+                    sp: Some(cpu.registers.hl()),
+                    ..RegisterChange::default()
+                }
+            )
+        },
         0xFB => StateChange { //EI
             byte_length: 1,
             t_states: 4,
