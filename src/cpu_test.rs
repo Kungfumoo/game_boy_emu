@@ -2539,3 +2539,50 @@ fn test_0xFE() { //CP A, n8
     assert!(cpu.flags.subtract);
     assert!(cpu.flags.zero);
 }
+
+//PREFIXED:
+const PREFIX: u8 = 0xCB;
+
+const RLC_R_START: u8 = 0x00;
+#[test]
+fn test_rlc_register() { //RLC r8
+    let mut cpu = prepare_cpu();
+
+    for opcode in RLC_R_START..0x08 {
+        let expected = {
+            let reg = get_register(&mut cpu, (opcode - RLC_R_START) as i32);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            let reg = reg.unwrap();
+            *reg = rand::random::<u8>();
+            *reg
+        };
+
+        cpu.execute_with_args(PREFIX, Some(vec![opcode]));
+
+        let expected = expected.rotate_left(1);
+        let actual = {
+            let reg = get_register(&mut cpu, (opcode - RLC_R_START) as i32);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            *reg.unwrap()
+        };
+
+        assert_eq!(
+            actual,
+            expected,
+            "executing PREFIXED {:#02x}",
+            opcode
+        );
+        assert!(!cpu.flags.subtract);
+        assert!(!cpu.flags.half_carry);
+        assert_eq!(cpu.flags.carry, (actual & 0x01) == 0x01);
+        assert_eq!(cpu.flags.zero, actual == 0);
+    }
+}

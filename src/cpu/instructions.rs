@@ -1,3 +1,5 @@
+use self::prefixed::prefixed_execute;
+
 use super::{
     CPU,
     ImeStatus,
@@ -14,6 +16,8 @@ use super::{
         add8_bit, sub8_bit
     }
 };
+
+mod prefixed;
 
 pub struct StateChange {
     pub byte_length: i16,
@@ -1511,6 +1515,10 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.memory[(cpu.registers.program_counter + 2) as usize]
             ))
         },
+        0xCB => prefixed_execute( //PREFIX
+            cpu,
+            cpu.memory[(cpu.registers.program_counter + 1) as usize]
+        ),
         0xCC => { //CALL Z, a16
             if !cpu.flags.zero {
                 return no_call();
