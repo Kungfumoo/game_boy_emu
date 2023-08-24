@@ -354,6 +354,137 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 result == 0
             )
         },
+        0x18 => { //RR B
+            let (result, set_carry) = rotate_right_through_carry(
+                cpu.registers.b,
+                cpu.flags.carry
+            );
+
+            rotate_register(
+                RegisterChange {
+                    b: Some(result as u8),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x19 => { //RR C
+            let (result, set_carry) = rotate_right_through_carry(
+                cpu.registers.c,
+                cpu.flags.carry
+            );
+
+            rotate_register(
+                RegisterChange {
+                    c: Some(result as u8),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x1A => { //RR D
+            let (result, set_carry) = rotate_right_through_carry(
+                cpu.registers.d,
+                cpu.flags.carry
+            );
+
+            rotate_register(
+                RegisterChange {
+                    d: Some(result as u8),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x1B => { //RR E
+            let (result, set_carry) = rotate_right_through_carry(
+                cpu.registers.e,
+                cpu.flags.carry
+            );
+
+            rotate_register(
+                RegisterChange {
+                    e: Some(result as u8),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x1C => { //RR H
+            let (result, set_carry) = rotate_right_through_carry(
+                cpu.registers.h,
+                cpu.flags.carry
+            );
+
+            rotate_register(
+                RegisterChange {
+                    h: Some(result as u8),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x1D => { //RR L
+            let (result, set_carry) = rotate_right_through_carry(
+                cpu.registers.l,
+                cpu.flags.carry
+            );
+
+            rotate_register(
+                RegisterChange {
+                    l: Some(result as u8),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x1E => { //RR [HL]
+            let (result, set_carry) = rotate_right_through_carry(
+                cpu.memory[cpu.registers.hl() as usize],
+                cpu.flags.carry
+            );
+
+            StateChange {
+                byte_length: 2,
+                t_states: 16,
+                ime: None,
+                flags: FlagChange {
+                    zero: Some(result == 0),
+                    carry: Some(set_carry),
+                    ..FlagChange::reset()
+                },
+                register: RegisterChange::default(),
+                memory: MemoryChange {
+                    changes: vec![
+                        MemoryEdit {
+                            key: cpu.registers.hl(),
+                            value: result
+                        }
+                    ]
+                }
+            }
+        },
+        0x1F => { //RR A
+            let (result, set_carry) = rotate_right_through_carry(
+                cpu.registers.a,
+                cpu.flags.carry
+            );
+
+            rotate_register(
+                RegisterChange {
+                    a: Some(result as u8),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -365,21 +496,26 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
     }
 }
 
-fn rotate_left_through_carry(value: u8, carry: bool) -> (u8, bool) {
-    let mut value = (value as u16) << 1; //convert to 16bit and shift to left by 1
+fn rotate_right_through_carry(value: u8, carry: bool) -> (u8, bool) {
+    let set_carry = (value & 0x01) == 0x01;
+    let mut value = value >> 1;
 
     if carry {
-        value += 1; //+1 will set the new rightmost bit
+        value += 0x80; //+0x80 will set the leftmost bit
     }
 
-    //bit 9 of the 16bit int will be the new carry
-    let set_carry = (value & 0x100) == 0x100;
+    (value, set_carry)
+}
 
-    if set_carry {
-        value -= 0x100; //unset bit 9 so we can cast back to 8 bits
+fn rotate_left_through_carry(value: u8, carry: bool) -> (u8, bool) {
+    let set_carry = (value & 0x80) == 0x80;
+    let mut value = value << 1;
+
+    if carry {
+        value += 0x01; //+1 will set the rightmost bit
     }
 
-    (value as u8, set_carry)
+    (value, set_carry)
 }
 
 fn rotate_register(change: RegisterChange, set_carry: bool, set_zero: bool) -> StateChange {
