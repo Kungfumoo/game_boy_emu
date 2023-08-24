@@ -2659,3 +2659,73 @@ fn test_pre_0x0E() { //RRC [HL]
     assert_eq!(2, cpu.registers.program_counter);
     assert_eq!(0x01, cpu.memory[0xC001]);
 }
+
+const RL_R_START: u8 = 0x10;
+#[test]
+fn test_rl_register() { //RL r8
+    let mut cpu = prepare_cpu();
+
+    for opcode in RL_R_START..0x18 {
+        let expected = {
+            let reg = get_register(&mut cpu, (opcode - RL_R_START) as i32);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            let reg = reg.unwrap();
+            *reg = rand::random::<u8>();
+            *reg
+        };
+
+        cpu.flags.carry = true;
+        cpu.execute_with_args(PREFIX, Some(vec![opcode]));
+
+        let expected = ((expected as u16) << 1) + 1; //+1 carry is always set to true for these tests
+        let should_carry = (expected & 0x100) == 0x100;
+        let actual = {
+            let reg = get_register(&mut cpu, (opcode - RL_R_START) as i32);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            *reg.unwrap()
+        };
+
+        assert_eq!(
+            actual,
+            (expected - if should_carry { 0x100 } else { 0 }) as u8,
+            "executing PREFIXED {:#02x}",
+            opcode
+        );
+        assert!(!cpu.flags.subtract);
+        assert!(!cpu.flags.half_carry);
+        assert_eq!(cpu.flags.carry, should_carry);
+        assert_eq!(cpu.flags.zero, actual == 0);
+    }
+}
+
+#[test]
+fn test_pre_0x16() { //RL [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.flags.carry = true;
+    cpu.memory[0xC001] = 0x01;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0x16]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0x03, cpu.memory[0xC001]);
+    assert!(!cpu.flags.carry);
+
+    cpu.flags.carry = true;
+    cpu.memory[0xC001] = 0x80;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0x16]));
+
+    assert_eq!(0x01, cpu.memory[0xC001]);
+    assert!(cpu.flags.carry);
+}
