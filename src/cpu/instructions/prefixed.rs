@@ -116,6 +116,113 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 a == 0
             )
         },
+        0x08 => { //RRC B
+            let b = cpu.registers.b.rotate_right(1);
+
+            rotate_register(
+                RegisterChange {
+                    b: Some(b),
+                    ..RegisterChange::default()
+                },
+                (b & 0x80) == 0x80, //check leftmost bit
+                b == 0
+            )
+        },
+        0x09 => { //RRC C
+            let c = cpu.registers.c.rotate_right(1);
+
+            rotate_register(
+                RegisterChange {
+                    c: Some(c),
+                    ..RegisterChange::default()
+                },
+                (c & 0x80) == 0x80, //check leftmost bit
+                c == 0
+            )
+        },
+        0x0A => { //RRC D
+            let d = cpu.registers.d.rotate_right(1);
+
+            rotate_register(
+                RegisterChange {
+                    d: Some(d),
+                    ..RegisterChange::default()
+                },
+                (d & 0x80) == 0x80, //check leftmost bit
+                d == 0
+            )
+        },
+        0x0B => { //RRC E
+            let e = cpu.registers.e.rotate_right(1);
+
+            rotate_register(
+                RegisterChange {
+                    e: Some(e),
+                    ..RegisterChange::default()
+                },
+                (e & 0x80) == 0x80, //check leftmost bit
+                e == 0
+            )
+        },
+        0x0C => { //RRC H
+            let h = cpu.registers.h.rotate_right(1);
+
+            rotate_register(
+                RegisterChange {
+                    h: Some(h),
+                    ..RegisterChange::default()
+                },
+                (h & 0x80) == 0x80, //check leftmost bit
+                h == 0
+            )
+        },
+        0x0D => { //RRC L
+            let l = cpu.registers.l.rotate_right(1);
+
+            rotate_register(
+                RegisterChange {
+                    l: Some(l),
+                    ..RegisterChange::default()
+                },
+                (l & 0x80) == 0x80, //check leftmost bit
+                l == 0
+            )
+        },
+        0x0E => { //RRC [HL]
+            let value = cpu.memory[cpu.registers.hl() as usize].rotate_right(1);
+
+            StateChange {
+                byte_length: 2,
+                t_states: 16,
+                ime: None,
+                flags: FlagChange {
+                    zero: Some(value == 0),
+                    carry: Some((value & 0x80) == 0x80),
+                    ..FlagChange::reset()
+                },
+                register: RegisterChange::default(),
+                memory: MemoryChange {
+                    changes: vec![
+                        MemoryEdit {
+                            key: cpu.registers.hl(),
+                            value: value
+                        }
+                    ]
+                }
+            }
+        },
+        0x0F => { //RRC A
+            let a = cpu.registers.a.rotate_right(1);
+
+            rotate_register(
+                RegisterChange {
+                    a: Some(a),
+                    ..RegisterChange::default()
+                },
+                (a & 0x80) == 0x80, //check leftmost bit
+                a == 0
+            )
+        },
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
