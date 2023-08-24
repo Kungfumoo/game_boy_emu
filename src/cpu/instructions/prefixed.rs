@@ -2,7 +2,7 @@ use crate::cpu::{
     CPU,
     flags::FlagChange,
     registers::RegisterChange,
-    memory::MemoryChange
+    memory::{MemoryChange, MemoryEdit}
 };
 
 use super::StateChange;
@@ -80,6 +80,29 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 (l & 0x01) == 0x01, //check rightmost bit
                 l == 0
             )
+        },
+        0x06 => { //RLC [HL]
+            let value = cpu.memory[cpu.registers.hl() as usize].rotate_left(1);
+
+            StateChange {
+                byte_length: 2,
+                t_states: 16,
+                ime: None,
+                flags: FlagChange {
+                    zero: Some(value == 0),
+                    carry: Some((value & 0x01) == 0x01),
+                    ..FlagChange::reset()
+                },
+                register: RegisterChange::default(),
+                memory: MemoryChange {
+                    changes: vec![
+                        MemoryEdit {
+                            key: cpu.registers.hl(),
+                            value: value
+                        }
+                    ]
+                }
+            }
         },
         0x07 => { //RLC A
             let a = cpu.registers.a.rotate_left(1);

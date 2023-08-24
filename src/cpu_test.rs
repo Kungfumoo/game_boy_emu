@@ -2586,3 +2586,17 @@ fn test_rlc_register() { //RLC r8
         assert_eq!(cpu.flags.zero, actual == 0);
     }
 }
+
+#[test]
+fn test_pre_0x06() { //RLC [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0x01;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0x06]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0x02, cpu.memory[0xC001]);
+}
