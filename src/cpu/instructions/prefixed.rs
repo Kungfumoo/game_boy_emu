@@ -231,7 +231,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             rotate_register(
                 RegisterChange {
-                    b: Some(result as u8),
+                    b: Some(result),
                     ..RegisterChange::default()
                 },
                 set_carry,
@@ -246,7 +246,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             rotate_register(
                 RegisterChange {
-                    c: Some(result as u8),
+                    c: Some(result),
                     ..RegisterChange::default()
                 },
                 set_carry,
@@ -261,7 +261,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             rotate_register(
                 RegisterChange {
-                    d: Some(result as u8),
+                    d: Some(result),
                     ..RegisterChange::default()
                 },
                 set_carry,
@@ -276,7 +276,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             rotate_register(
                 RegisterChange {
-                    e: Some(result as u8),
+                    e: Some(result),
                     ..RegisterChange::default()
                 },
                 set_carry,
@@ -291,7 +291,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             rotate_register(
                 RegisterChange {
-                    h: Some(result as u8),
+                    h: Some(result),
                     ..RegisterChange::default()
                 },
                 set_carry,
@@ -306,7 +306,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             rotate_register(
                 RegisterChange {
-                    l: Some(result as u8),
+                    l: Some(result),
                     ..RegisterChange::default()
                 },
                 set_carry,
@@ -347,7 +347,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             rotate_register(
                 RegisterChange {
-                    a: Some(result as u8),
+                    a: Some(result),
                     ..RegisterChange::default()
                 },
                 set_carry,
@@ -362,7 +362,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             rotate_register(
                 RegisterChange {
-                    b: Some(result as u8),
+                    b: Some(result),
                     ..RegisterChange::default()
                 },
                 set_carry,
@@ -377,7 +377,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             rotate_register(
                 RegisterChange {
-                    c: Some(result as u8),
+                    c: Some(result),
                     ..RegisterChange::default()
                 },
                 set_carry,
@@ -392,7 +392,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             rotate_register(
                 RegisterChange {
-                    d: Some(result as u8),
+                    d: Some(result),
                     ..RegisterChange::default()
                 },
                 set_carry,
@@ -407,7 +407,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             rotate_register(
                 RegisterChange {
-                    e: Some(result as u8),
+                    e: Some(result),
                     ..RegisterChange::default()
                 },
                 set_carry,
@@ -422,7 +422,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             rotate_register(
                 RegisterChange {
-                    h: Some(result as u8),
+                    h: Some(result),
                     ..RegisterChange::default()
                 },
                 set_carry,
@@ -437,7 +437,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             rotate_register(
                 RegisterChange {
-                    l: Some(result as u8),
+                    l: Some(result),
                     ..RegisterChange::default()
                 },
                 set_carry,
@@ -478,7 +478,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
 
             rotate_register(
                 RegisterChange {
-                    a: Some(result as u8),
+                    a: Some(result),
                     ..RegisterChange::default()
                 },
                 set_carry,

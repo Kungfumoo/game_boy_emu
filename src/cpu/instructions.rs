@@ -260,23 +260,16 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             ..RegisterChange::default()
         }),
         0x17 => { //RLA (rotate register A left through the carry)
-            //carry works effectively as the 1st bit on the right so need to emulate this...
-            let mut a = (cpu.registers.a as u16) << 1; //convert to 16bit and shift to left by 1
+            let set_carry = (cpu.registers.a & 0x80) == 0x80;
+            let mut value = cpu.registers.a << 1;
 
             if cpu.flags.carry {
-                a += 1; //+1 will set the new rightmost bit
-            }
-
-            //bit 9 of the 16bit int will be the new carry
-            let set_carry = (a & 0x100) == 0x100;
-
-            if set_carry {
-                a -= 0x100; //unset bit 9 so we can cast back to 8 bits
+                value += 0x01; //+1 will set the rightmost bit
             }
 
             rotate_register(
                 RegisterChange {
-                    a: Some(a as u8),
+                    a: Some(value),
                     ..RegisterChange::default()
                 },
                 set_carry
