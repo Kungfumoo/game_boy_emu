@@ -2797,3 +2797,69 @@ fn test_pre_0x1E() { //RR [HL]
     assert_eq!(0x40, cpu.memory[0xC001]);
     assert!(cpu.flags.carry);
 }
+
+const SLA_R_START: u8 = 0x20;
+#[test]
+fn test_sla_register() { //SLA r8
+    let mut cpu = prepare_cpu();
+
+    for opcode in SLA_R_START..0x28 {
+        let expected = {
+            let reg = get_register(&mut cpu, (opcode - SLA_R_START) as i32);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            let reg = reg.unwrap();
+            *reg = rand::random::<u8>();
+            *reg
+        };
+
+        cpu.execute_with_args(PREFIX, Some(vec![opcode]));
+
+        let should_carry = (expected & 0x80) == 0x80;
+        let actual = {
+            let reg = get_register(&mut cpu, (opcode - SLA_R_START) as i32);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            *reg.unwrap()
+        };
+
+        assert_eq!(
+            actual,
+            expected << 1,
+            "executing PREFIXED {:#02x}",
+            opcode
+        );
+        assert!(!cpu.flags.subtract);
+        assert!(!cpu.flags.half_carry);
+        assert_eq!(cpu.flags.carry, should_carry);
+        assert_eq!(cpu.flags.zero, actual == 0);
+    }
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0x26() { //SLA [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0x02;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0x26]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0x04, cpu.memory[0xC001]);
+    assert!(!cpu.flags.carry);
+
+    cpu.memory[0xC001] = 0x80;
+    cpu.execute_with_args(PREFIX, Some(vec![0x26]));
+
+    assert_eq!(0x0, cpu.memory[0xC001]);
+    assert!(cpu.flags.carry);
+}

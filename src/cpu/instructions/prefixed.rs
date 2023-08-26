@@ -12,7 +12,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x00 => { //RLC B
             let b = cpu.registers.b.rotate_left(1);
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     b: Some(b),
                     ..RegisterChange::default()
@@ -24,7 +24,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x01 => { //RLC C
             let c = cpu.registers.c.rotate_left(1);
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     c: Some(c),
                     ..RegisterChange::default()
@@ -36,7 +36,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x02 => { //RLC D
             let d = cpu.registers.d.rotate_left(1);
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     d: Some(d),
                     ..RegisterChange::default()
@@ -48,7 +48,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x03 => { //RLC E
             let e = cpu.registers.e.rotate_left(1);
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     e: Some(e),
                     ..RegisterChange::default()
@@ -60,7 +60,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x04 => { //RLC H
             let h = cpu.registers.h.rotate_left(1);
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     h: Some(h),
                     ..RegisterChange::default()
@@ -72,7 +72,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x05 => { //RLC L
             let l = cpu.registers.l.rotate_left(1);
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     l: Some(l),
                     ..RegisterChange::default()
@@ -107,7 +107,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x07 => { //RLC A
             let a = cpu.registers.a.rotate_left(1);
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     a: Some(a),
                     ..RegisterChange::default()
@@ -119,7 +119,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x08 => { //RRC B
             let b = cpu.registers.b.rotate_right(1);
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     b: Some(b),
                     ..RegisterChange::default()
@@ -131,7 +131,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x09 => { //RRC C
             let c = cpu.registers.c.rotate_right(1);
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     c: Some(c),
                     ..RegisterChange::default()
@@ -143,7 +143,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x0A => { //RRC D
             let d = cpu.registers.d.rotate_right(1);
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     d: Some(d),
                     ..RegisterChange::default()
@@ -155,7 +155,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x0B => { //RRC E
             let e = cpu.registers.e.rotate_right(1);
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     e: Some(e),
                     ..RegisterChange::default()
@@ -167,7 +167,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x0C => { //RRC H
             let h = cpu.registers.h.rotate_right(1);
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     h: Some(h),
                     ..RegisterChange::default()
@@ -179,7 +179,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x0D => { //RRC L
             let l = cpu.registers.l.rotate_right(1);
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     l: Some(l),
                     ..RegisterChange::default()
@@ -214,7 +214,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x0F => { //RRC A
             let a = cpu.registers.a.rotate_right(1);
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     a: Some(a),
                     ..RegisterChange::default()
@@ -229,7 +229,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     b: Some(result),
                     ..RegisterChange::default()
@@ -244,7 +244,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     c: Some(result),
                     ..RegisterChange::default()
@@ -259,7 +259,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     d: Some(result),
                     ..RegisterChange::default()
@@ -274,7 +274,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     e: Some(result),
                     ..RegisterChange::default()
@@ -289,7 +289,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     h: Some(result),
                     ..RegisterChange::default()
@@ -304,7 +304,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     l: Some(result),
                     ..RegisterChange::default()
@@ -345,7 +345,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     a: Some(result),
                     ..RegisterChange::default()
@@ -360,7 +360,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     b: Some(result),
                     ..RegisterChange::default()
@@ -375,7 +375,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     c: Some(result),
                     ..RegisterChange::default()
@@ -390,7 +390,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     d: Some(result),
                     ..RegisterChange::default()
@@ -405,7 +405,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     e: Some(result),
                     ..RegisterChange::default()
@@ -420,7 +420,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     h: Some(result),
                     ..RegisterChange::default()
@@ -435,7 +435,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            rotate_register(
+            rotate_shift_register(
                 RegisterChange {
                     l: Some(result),
                     ..RegisterChange::default()
@@ -476,7 +476,130 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            rotate_register(
+            rotate_shift_register(
+                RegisterChange {
+                    a: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x20 => { //SLA B
+            let (result, set_carry) = shift_left_arithmetically(
+                cpu.registers.b
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    b: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x21 => { //SLA C
+            let (result, set_carry) = shift_left_arithmetically(
+                cpu.registers.c
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    c: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x22 => { //SLA D
+            let (result, set_carry) = shift_left_arithmetically(
+                cpu.registers.d
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    d: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x23 => { //SLA E
+            let (result, set_carry) = shift_left_arithmetically(
+                cpu.registers.e
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    e: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x24 => { //SLA H
+            let (result, set_carry) = shift_left_arithmetically(
+                cpu.registers.h
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    h: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x25 => { //SLA L
+            let (result, set_carry) = shift_left_arithmetically(
+                cpu.registers.l
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    l: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x26 => { //SLA [HL]
+            let (result, set_carry) = shift_left_arithmetically(
+                cpu.memory[cpu.registers.hl() as usize]
+            );
+
+            StateChange {
+                byte_length: 2,
+                t_states: 16,
+                ime: None,
+                flags: FlagChange {
+                    zero: Some(result == 0),
+                    carry: Some(set_carry),
+                    ..FlagChange::reset()
+                },
+                register: RegisterChange::default(),
+                memory: MemoryChange {
+                    changes: vec![
+                        MemoryEdit {
+                            key: cpu.registers.hl(),
+                            value: result
+                        }
+                    ]
+                }
+            }
+        },
+        0x27 => { //SLA A
+            let (result, set_carry) = shift_left_arithmetically(
+                cpu.registers.a
+            );
+
+            rotate_shift_register(
                 RegisterChange {
                     a: Some(result),
                     ..RegisterChange::default()
@@ -518,7 +641,14 @@ fn rotate_left_through_carry(value: u8, carry: bool) -> (u8, bool) {
     (value, set_carry)
 }
 
-fn rotate_register(change: RegisterChange, set_carry: bool, set_zero: bool) -> StateChange {
+fn shift_left_arithmetically(value: u8) -> (u8, bool) {
+    let set_carry = (value & 0x80) == 0x80;
+    let value = value << 1;
+
+    (value, set_carry)
+}
+
+fn rotate_shift_register(change: RegisterChange, set_carry: bool, set_zero: bool) -> StateChange {
     StateChange {
         byte_length: 2,
         t_states: 8,
