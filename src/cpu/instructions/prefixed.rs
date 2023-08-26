@@ -82,27 +82,21 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0x06 => { //RLC [HL]
-            let value = cpu.memory[cpu.registers.hl() as usize].rotate_left(1);
+            let result = cpu.memory[cpu.registers.hl() as usize].rotate_left(1);
+            let set_carry = (result & 0x01) == 0x01;
 
-            StateChange {
-                byte_length: 2,
-                t_states: 16,
-                ime: None,
-                flags: FlagChange {
-                    zero: Some(value == 0),
-                    carry: Some((value & 0x01) == 0x01),
-                    ..FlagChange::reset()
-                },
-                register: RegisterChange::default(),
-                memory: MemoryChange {
+            rotate_shift_absolute(
+                MemoryChange {
                     changes: vec![
                         MemoryEdit {
                             key: cpu.registers.hl(),
-                            value: value
+                            value: result
                         }
                     ]
-                }
-            }
+                },
+                set_carry,
+                result == 0
+            )
         },
         0x07 => { //RLC A
             let a = cpu.registers.a.rotate_left(1);
@@ -189,27 +183,21 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0x0E => { //RRC [HL]
-            let value = cpu.memory[cpu.registers.hl() as usize].rotate_right(1);
+            let result = cpu.memory[cpu.registers.hl() as usize].rotate_right(1);
+            let set_carry = (result & 0x80) == 0x80;
 
-            StateChange {
-                byte_length: 2,
-                t_states: 16,
-                ime: None,
-                flags: FlagChange {
-                    zero: Some(value == 0),
-                    carry: Some((value & 0x80) == 0x80),
-                    ..FlagChange::reset()
-                },
-                register: RegisterChange::default(),
-                memory: MemoryChange {
+            rotate_shift_absolute(
+                MemoryChange {
                     changes: vec![
                         MemoryEdit {
                             key: cpu.registers.hl(),
-                            value: value
+                            value: result
                         }
                     ]
-                }
-            }
+                },
+                set_carry,
+                result == 0
+            )
         },
         0x0F => { //RRC A
             let a = cpu.registers.a.rotate_right(1);
@@ -319,25 +307,18 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            StateChange {
-                byte_length: 2,
-                t_states: 16,
-                ime: None,
-                flags: FlagChange {
-                    zero: Some(result == 0),
-                    carry: Some(set_carry),
-                    ..FlagChange::reset()
-                },
-                register: RegisterChange::default(),
-                memory: MemoryChange {
+            rotate_shift_absolute(
+                MemoryChange {
                     changes: vec![
                         MemoryEdit {
                             key: cpu.registers.hl(),
                             value: result
                         }
                     ]
-                }
-            }
+                },
+                set_carry,
+                result == 0
+            )
         },
         0x17 => { //RL A
             let (result, set_carry) = rotate_left_through_carry(
@@ -450,25 +431,18 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.flags.carry
             );
 
-            StateChange {
-                byte_length: 2,
-                t_states: 16,
-                ime: None,
-                flags: FlagChange {
-                    zero: Some(result == 0),
-                    carry: Some(set_carry),
-                    ..FlagChange::reset()
-                },
-                register: RegisterChange::default(),
-                memory: MemoryChange {
+            rotate_shift_absolute(
+                MemoryChange {
                     changes: vec![
                         MemoryEdit {
                             key: cpu.registers.hl(),
                             value: result
                         }
                     ]
-                }
-            }
+                },
+                set_carry,
+                result == 0
+            )
         },
         0x1F => { //RR A
             let (result, set_carry) = rotate_right_through_carry(
@@ -574,25 +548,18 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 cpu.memory[cpu.registers.hl() as usize]
             );
 
-            StateChange {
-                byte_length: 2,
-                t_states: 16,
-                ime: None,
-                flags: FlagChange {
-                    zero: Some(result == 0),
-                    carry: Some(set_carry),
-                    ..FlagChange::reset()
-                },
-                register: RegisterChange::default(),
-                memory: MemoryChange {
+            rotate_shift_absolute(
+                MemoryChange {
                     changes: vec![
                         MemoryEdit {
                             key: cpu.registers.hl(),
                             value: result
                         }
                     ]
-                }
-            }
+                },
+                set_carry,
+                result == 0
+            )
         },
         0x27 => { //SLA A
             let (result, set_carry) = shift_left_arithmetically(
@@ -646,6 +613,21 @@ fn shift_left_arithmetically(value: u8) -> (u8, bool) {
     let value = value << 1;
 
     (value, set_carry)
+}
+
+fn rotate_shift_absolute(change: MemoryChange, set_carry: bool, set_zero: bool) -> StateChange {
+    StateChange {
+        byte_length: 2,
+        t_states: 16,
+        ime: Option::None,
+        flags: FlagChange {
+            carry: Some(set_carry),
+            zero: Some(set_zero),
+            ..FlagChange::reset()
+        },
+        register: RegisterChange::default(),
+        memory: change
+    }
 }
 
 fn rotate_shift_register(change: RegisterChange, set_carry: bool, set_zero: bool) -> StateChange {
