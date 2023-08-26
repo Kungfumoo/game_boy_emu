@@ -691,6 +691,98 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 result == 0
             )
         },
+        0x30 => { //SWAP B
+            let result = swap(cpu.registers.b);
+
+            swap_register(
+                RegisterChange {
+                    b: Some(result),
+                    ..RegisterChange::default()
+                },
+                result == 0
+            )
+        },
+        0x31 => { //SWAP C
+            let result = swap(cpu.registers.c);
+
+            swap_register(
+                RegisterChange {
+                    c: Some(result),
+                    ..RegisterChange::default()
+                },
+                result == 0
+            )
+        },
+        0x32 => { //SWAP D
+            let result = swap(cpu.registers.d);
+
+            swap_register(
+                RegisterChange {
+                    d: Some(result),
+                    ..RegisterChange::default()
+                },
+                result == 0
+            )
+        },
+        0x33 => { //SWAP E
+            let result = swap(cpu.registers.e);
+
+            swap_register(
+                RegisterChange {
+                    e: Some(result),
+                    ..RegisterChange::default()
+                },
+                result == 0
+            )
+        },
+        0x34 => { //SWAP H
+            let result = swap(cpu.registers.h);
+
+            swap_register(
+                RegisterChange {
+                    h: Some(result),
+                    ..RegisterChange::default()
+                },
+                result == 0
+            )
+        },
+        0x35 => { //SWAP L
+            let result = swap(cpu.registers.l);
+
+            swap_register(
+                RegisterChange {
+                    l: Some(result),
+                    ..RegisterChange::default()
+                },
+                result == 0
+            )
+        },
+        0x36 => { //SWAP [HL]
+            let result = swap(cpu.memory[cpu.registers.hl() as usize]);
+
+            swap_absolute(
+                MemoryChange {
+                    changes: vec![
+                        MemoryEdit {
+                            key: cpu.registers.hl(),
+                            value: result
+                        }
+                    ]
+                },
+                result == 0
+            )
+        },
+        0x37 => { //SWAP A
+            let result = swap(cpu.registers.a);
+
+            swap_register(
+                RegisterChange {
+                    a: Some(result),
+                    ..RegisterChange::default()
+                },
+                result == 0
+            )
+        },
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -738,6 +830,39 @@ fn shift_right_arithmetically(value: u8) -> (u8, bool) {
     let value = (value >> 1) + (value & 0x80);
 
     (value, set_carry)
+}
+
+//swap upper 4 bits and lower 4 bits
+fn swap(value: u8) -> u8 {
+    (value << 4) ^ (value >> 4)
+}
+
+fn swap_absolute(change: MemoryChange, set_zero: bool) -> StateChange {
+    StateChange {
+        byte_length: 2,
+        t_states: 16,
+        ime: Option::None,
+        flags: FlagChange {
+            zero: Some(set_zero),
+            ..FlagChange::reset()
+        },
+        register: RegisterChange::default(),
+        memory: change
+    }
+}
+
+fn swap_register(change: RegisterChange, set_zero: bool) -> StateChange {
+    StateChange {
+        byte_length: 2,
+        t_states: 8,
+        ime: Option::None,
+        flags: FlagChange {
+            zero: Some(set_zero),
+            ..FlagChange::reset()
+        },
+        register: change,
+        memory: MemoryChange::default()
+    }
 }
 
 fn rotate_shift_absolute(change: MemoryChange, set_carry: bool, set_zero: bool) -> StateChange {
