@@ -575,6 +575,122 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 result == 0
             )
         },
+        0x28 => { //SRA B
+            let (result, set_carry) = shift_right_arithmetically(
+                cpu.registers.b
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    b: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x29 => { //SRA C
+            let (result, set_carry) = shift_right_arithmetically(
+                cpu.registers.c
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    c: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x2A => { //SRA D
+            let (result, set_carry) = shift_right_arithmetically(
+                cpu.registers.d
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    d: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x2B => { //SRA E
+            let (result, set_carry) = shift_right_arithmetically(
+                cpu.registers.e
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    e: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x2C => { //SRA H
+            let (result, set_carry) = shift_right_arithmetically(
+                cpu.registers.h
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    h: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x2D => { //SRA L
+            let (result, set_carry) = shift_right_arithmetically(
+                cpu.registers.l
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    l: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x2E => { //SRA [HL]
+            let (result, set_carry) = shift_right_arithmetically(
+                cpu.memory[cpu.registers.hl() as usize]
+            );
+
+            rotate_shift_absolute(
+                MemoryChange {
+                    changes: vec![
+                        MemoryEdit {
+                            key: cpu.registers.hl(),
+                            value: result
+                        }
+                    ]
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x2F => { //SRA A
+            let (result, set_carry) = shift_right_arithmetically(
+                cpu.registers.a
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    a: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -608,9 +724,18 @@ fn rotate_left_through_carry(value: u8, carry: bool) -> (u8, bool) {
     (value, set_carry)
 }
 
+//same as a logical left shift
 fn shift_left_arithmetically(value: u8) -> (u8, bool) {
     let set_carry = (value & 0x80) == 0x80;
     let value = value << 1;
+
+    (value, set_carry)
+}
+
+//MSB is shifted and the new MSB is set to the pre-shift MSB value
+fn shift_right_arithmetically(value: u8) -> (u8, bool) {
+    let set_carry = (value & 0x01) == 0x01;
+    let value = (value >> 1) + (value & 0x80);
 
     (value, set_carry)
 }
