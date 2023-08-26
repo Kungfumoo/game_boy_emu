@@ -783,6 +783,122 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 result == 0
             )
         },
+        0x38 => { //SRL B
+            let (result, set_carry) = shift_right_logically(
+                cpu.registers.b
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    b: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x39 => { //SRL C
+            let (result, set_carry) = shift_right_logically(
+                cpu.registers.c
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    c: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x3A => { //SRL D
+            let (result, set_carry) = shift_right_logically(
+                cpu.registers.d
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    d: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x3B => { //SRL E
+            let (result, set_carry) = shift_right_logically(
+                cpu.registers.e
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    e: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x3C => { //SRL H
+            let (result, set_carry) = shift_right_logically(
+                cpu.registers.h
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    h: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x3D => { //SRL L
+            let (result, set_carry) = shift_right_logically(
+                cpu.registers.l
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    l: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x3E => { //SRL [HL]
+            let (result, set_carry) = shift_right_logically(
+                cpu.memory[cpu.registers.hl() as usize]
+            );
+
+            rotate_shift_absolute(
+                MemoryChange {
+                    changes: vec![
+                        MemoryEdit {
+                            key: cpu.registers.hl(),
+                            value: result
+                        }
+                    ]
+                },
+                set_carry,
+                result == 0
+            )
+        },
+        0x3F => { //SRL A
+            let (result, set_carry) = shift_right_logically(
+                cpu.registers.a
+            );
+
+            rotate_shift_register(
+                RegisterChange {
+                    a: Some(result),
+                    ..RegisterChange::default()
+                },
+                set_carry,
+                result == 0
+            )
+        },
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -828,6 +944,13 @@ fn shift_left_arithmetically(value: u8) -> (u8, bool) {
 fn shift_right_arithmetically(value: u8) -> (u8, bool) {
     let set_carry = (value & 0x01) == 0x01;
     let value = (value >> 1) + (value & 0x80);
+
+    (value, set_carry)
+}
+
+fn shift_right_logically(value: u8) -> (u8, bool) {
+    let set_carry = (value & 0x01) == 0x01;
+    let value = value >> 1;
 
     (value, set_carry)
 }
