@@ -36,7 +36,7 @@ impl RegisterChange {
             0x03 => RegisterChange { e: value, ..RegisterChange::default() },
             0x04 => RegisterChange { h: value, ..RegisterChange::default() },
             0x05 => RegisterChange { l: value, ..RegisterChange::default() },
-            0x07 => RegisterChange { b: value, ..RegisterChange::default() },
+            0x07 => RegisterChange { a: value, ..RegisterChange::default() },
             _ => panic!("{:#02x} not a valid index for creating a register change from opcode", index)
         }
     }

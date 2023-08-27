@@ -3080,7 +3080,7 @@ fn test_bit_register() { //BIT u3, r8
 
         cpu.execute_with_args(PREFIX, Some(vec![opcode]));
 
-        let test = BINARY_BASE.pow(bit_index as u32); //use powers
+        let test = BINARY_BASE.pow(bit_index as u32);
         let set_zero = expected & test != test;
 
         assert_eq!(
@@ -3252,4 +3252,210 @@ fn test_pre_0x7E() { //BIT 7, [HL]
     cpu.execute_with_args(PREFIX, Some(vec![0x7E]));
 
     assert!(cpu.flags.zero);
+}
+
+const RES_R_START: u8 = 0x80;
+#[test]
+fn test_res_register() { //RES u3, r8
+    let mut cpu = prepare_cpu();
+
+    for opcode in RES_R_START..0xC0 {
+        let bit_index = (opcode / 16) % 0x08;
+        let test = BINARY_BASE.pow(bit_index as u32);
+        let expected = {
+            let reg = get_register(&mut cpu, (opcode - RES_R_START) as i32);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            let reg = reg.unwrap();
+            *reg = rand::random::<u8>();
+
+            if *reg & test == test { //it is set
+                *reg - test
+            } else {
+                *reg
+            }
+        };
+
+        cpu.execute_with_args(PREFIX, Some(vec![opcode]));
+
+        let actual = {
+            let reg = get_register(&mut cpu, (opcode - RES_R_START) as i32);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            *reg.unwrap()
+        };
+
+        assert_eq!(
+            expected,
+            actual,
+            "executing PREFIXED {:#02x}",
+            opcode
+        );
+    }
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0x86() { //RES 0, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b10101001;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0x86]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0b10101000, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = 0b10101000;
+    cpu.execute_with_args(PREFIX, Some(vec![0x86]));
+
+    assert_eq!(0b10101000, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0x8E() { //RES 1, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b10101010;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0x8E]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0b10101000, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = 0b10101000;
+    cpu.execute_with_args(PREFIX, Some(vec![0x8E]));
+
+    assert_eq!(0b10101000, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0x96() { //RES 2, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b10101100;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0x96]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0b10101000, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = 0b10101000;
+    cpu.execute_with_args(PREFIX, Some(vec![0x96]));
+
+    assert_eq!(0b10101000, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0x9E() { //RES 3, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b10101001;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0x9E]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0b10100001, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = 0b10100001;
+    cpu.execute_with_args(PREFIX, Some(vec![0x9E]));
+
+    assert_eq!(0b10100001, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0xA6() { //RES 4, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b10111001;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0xA6]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0b10101001, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = 0b10101001;
+    cpu.execute_with_args(PREFIX, Some(vec![0xA6]));
+
+    assert_eq!(0b10101001, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0xAE() { //RES 5, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b10111001;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0xAE]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0b10011001, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = 0b10011001;
+    cpu.execute_with_args(PREFIX, Some(vec![0xAE]));
+
+    assert_eq!(0b10011001, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0xB6() { //RES 6, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b11111001;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0xB6]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0b10111001, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = 0b10111001;
+    cpu.execute_with_args(PREFIX, Some(vec![0xB6]));
+
+    assert_eq!(0b10111001, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0xBE() { //RES 7, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b11111001;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0xBE]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0b01111001, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = 0b01111001;
+    cpu.execute_with_args(PREFIX, Some(vec![0xBE]));
+
+    assert_eq!(0b01111001, cpu.memory[0xC001]);
 }

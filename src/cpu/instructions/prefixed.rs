@@ -899,6 +899,7 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 result == 0
             )
         },
+        //BIT
         0x40..=0x45 => bit_test_register(cpu, op_code, 0),
         0x46 => bit_test_absolute_hl(cpu, 0),
         0x47 => bit_test_register(cpu, op_code, 0),
@@ -923,6 +924,31 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0x78..=0x7D => bit_test_register(cpu, op_code, 7),
         0x7E => bit_test_absolute_hl(cpu, 7),
         0x7F => bit_test_register(cpu, op_code, 7),
+        //RES
+        0x80..=0x85 => reset_bit_register(cpu, op_code, 0),
+        0x86 => reset_bit_absolute_hl(cpu, 0),
+        0x87 => reset_bit_register(cpu, op_code, 0),
+        0x88..=0x8D => reset_bit_register(cpu, op_code, 1),
+        0x8E => reset_bit_absolute_hl(cpu, 1),
+        0x8F => reset_bit_register(cpu, op_code, 1),
+        0x90..=0x95 => reset_bit_register(cpu, op_code, 2),
+        0x96 => reset_bit_absolute_hl(cpu, 2),
+        0x97 => reset_bit_register(cpu, op_code, 2),
+        0x98..=0x9D => reset_bit_register(cpu, op_code, 3),
+        0x9E => reset_bit_absolute_hl(cpu, 3),
+        0x9F => reset_bit_register(cpu, op_code, 3),
+        0xA0..=0xA5 => reset_bit_register(cpu, op_code, 4),
+        0xA6 => reset_bit_absolute_hl(cpu, 4),
+        0xA7 => reset_bit_register(cpu, op_code, 4),
+        0xA8..=0xAD => reset_bit_register(cpu, op_code, 5),
+        0xAE => reset_bit_absolute_hl(cpu, 5),
+        0xAF => reset_bit_register(cpu, op_code, 5),
+        0xB0..=0xB5 => reset_bit_register(cpu, op_code, 6),
+        0xB6 => reset_bit_absolute_hl(cpu, 6),
+        0xB7 => reset_bit_register(cpu, op_code, 6),
+        0xB8..=0xBD => reset_bit_register(cpu, op_code, 7),
+        0xBE => reset_bit_absolute_hl(cpu, 7),
+        0xBF => reset_bit_register(cpu, op_code, 7),
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -982,6 +1008,52 @@ fn shift_right_logically(value: u8) -> (u8, bool) {
 //swap upper 4 bits and lower 4 bits
 fn swap(value: u8) -> u8 {
     (value << 4) ^ (value >> 4)
+}
+
+fn reset_bit_register(cpu: &CPU, op_code: u8, bit_index: u8) -> StateChange {
+    let test = BINARY_BASE.pow(bit_index as u32);
+    let mut value = cpu.registers.from_opcode_index(op_code);
+
+    if (value & test) == test { //the bit is set, reset it
+        value -= test;
+    }
+
+    StateChange {
+        byte_length: 2,
+        t_states: 8,
+        ime: None,
+        flags: FlagChange::default(),
+        register: RegisterChange::create_from_opcode(
+            op_code,
+            Some(value)
+        ),
+        memory: MemoryChange::default()
+    }
+}
+
+fn reset_bit_absolute_hl(cpu: &CPU, bit_index: u8) -> StateChange {
+    let test = BINARY_BASE.pow(bit_index as u32);
+    let mut value = cpu.memory[cpu.registers.hl() as usize];
+
+    if (value & test) == test { //the bit is set, reset it
+        value -= test;
+    }
+
+    StateChange {
+        byte_length: 2,
+        t_states: 16,
+        ime: None,
+        flags: FlagChange::default(),
+        register: RegisterChange::default(),
+        memory: MemoryChange {
+            changes: vec![
+                MemoryEdit {
+                    key: cpu.registers.hl(),
+                    value
+                }
+            ]
+        }
+    }
 }
 
 fn bit_test_register(cpu: &CPU, op_code: u8, bit_index: u8) -> StateChange {
