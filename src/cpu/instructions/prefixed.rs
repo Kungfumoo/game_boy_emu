@@ -2,7 +2,7 @@ use crate::cpu::{
     CPU,
     flags::FlagChange,
     registers::RegisterChange,
-    memory::{MemoryChange, MemoryEdit}
+    memory::{MemoryChange, MemoryEdit}, util::BINARY_BASE
 };
 
 use super::StateChange;
@@ -899,6 +899,30 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
                 result == 0
             )
         },
+        0x40..=0x45 => bit_test_register(cpu, op_code, 0),
+        0x46 => bit_test_absolute_hl(cpu, 0),
+        0x47 => bit_test_register(cpu, op_code, 0),
+        0x48..=0x4D => bit_test_register(cpu, op_code, 1),
+        0x4E => bit_test_absolute_hl(cpu, 1),
+        0x4F => bit_test_register(cpu, op_code, 1),
+        0x50..=0x55 => bit_test_register(cpu, op_code, 2),
+        0x56 => bit_test_absolute_hl(cpu, 2),
+        0x57 => bit_test_register(cpu, op_code, 2),
+        0x58..=0x5D => bit_test_register(cpu, op_code, 3),
+        0x5E => bit_test_absolute_hl(cpu, 3),
+        0x5F => bit_test_register(cpu, op_code, 3),
+        0x60..=0x65 => bit_test_register(cpu, op_code, 4),
+        0x66 => bit_test_absolute_hl(cpu, 4),
+        0x67 => bit_test_register(cpu, op_code, 4),
+        0x68..=0x6D => bit_test_register(cpu, op_code, 5),
+        0x6E => bit_test_absolute_hl(cpu, 5),
+        0x6F => bit_test_register(cpu, op_code, 5),
+        0x70..=0x75 => bit_test_register(cpu, op_code, 6),
+        0x76 => bit_test_absolute_hl(cpu, 6),
+        0x77 => bit_test_register(cpu, op_code, 6),
+        0x78..=0x7D => bit_test_register(cpu, op_code, 7),
+        0x7E => bit_test_absolute_hl(cpu, 7),
+        0x7F => bit_test_register(cpu, op_code, 7),
         _ => StateChange {
             byte_length: 0,
             t_states: 0,
@@ -958,6 +982,46 @@ fn shift_right_logically(value: u8) -> (u8, bool) {
 //swap upper 4 bits and lower 4 bits
 fn swap(value: u8) -> u8 {
     (value << 4) ^ (value >> 4)
+}
+
+fn bit_test_register(cpu: &CPU, op_code: u8, bit_index: u8) -> StateChange {
+    let test = BINARY_BASE.pow(bit_index as u32);
+    let value = cpu.registers.from_opcode_index(op_code);
+    let set_zero = value & test != test;
+
+    StateChange {
+        byte_length: 2,
+        t_states: 8,
+        ime: None,
+        flags: FlagChange {
+            zero: Some(set_zero),
+            subtract: Some(false),
+            half_carry: Some(true),
+            carry: None
+        },
+        register: RegisterChange::default(),
+        memory: MemoryChange::default()
+    }
+}
+
+fn bit_test_absolute_hl(cpu: &CPU, bit_index: u8) -> StateChange {
+    let test = BINARY_BASE.pow(bit_index as u32);
+    let value = cpu.memory[cpu.registers.hl() as usize];
+    let set_zero = value & test != test;
+
+    StateChange {
+        byte_length: 2,
+        t_states: 12,
+        ime: None,
+        flags: FlagChange {
+            zero: Some(set_zero),
+            subtract: Some(false),
+            half_carry: Some(true),
+            carry: None
+        },
+        register: RegisterChange::default(),
+        memory: MemoryChange::default()
+    }
 }
 
 fn swap_absolute(change: MemoryChange, set_zero: bool) -> StateChange {

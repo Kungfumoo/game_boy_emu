@@ -24,6 +24,22 @@ impl RegisterChange {
             l: Option::None
         }
     }
+
+    //Short hand to create register change based on common opcode, eg 0xn0 = b, 0xn1 = c and so on
+    pub fn create_from_opcode(opcode: u8, value: Option<u8>) -> RegisterChange {
+        let index = opcode % 0x08;
+
+        match index {
+            0x00 => RegisterChange { b: value, ..RegisterChange::default() },
+            0x01 => RegisterChange { c: value, ..RegisterChange::default() },
+            0x02 => RegisterChange { d: value, ..RegisterChange::default() },
+            0x03 => RegisterChange { e: value, ..RegisterChange::default() },
+            0x04 => RegisterChange { h: value, ..RegisterChange::default() },
+            0x05 => RegisterChange { l: value, ..RegisterChange::default() },
+            0x07 => RegisterChange { b: value, ..RegisterChange::default() },
+            _ => panic!("{:#02x} not a valid index for creating a register change from opcode", index)
+        }
+    }
 }
 
 pub struct Registers {
@@ -102,6 +118,21 @@ impl Registers {
     pub fn hl(&self) -> u16 {
         to16_bit(self.h, self.l)
     }
+
+    pub fn from_opcode_index(&self, opcode: u8) -> u8 {
+        let index = opcode % 0x08;
+
+        match index {
+            0x00 => self.b,
+            0x01 => self.c,
+            0x02 => self.d,
+            0x03 => self.e,
+            0x04 => self.h,
+            0x05 => self.l,
+            0x07 => self.a,
+            _ => panic!("{:#02x} not a valid index for register fetching", index)
+        }
+    }
 }
 
 pub fn to16_bit(left: u8, right: u8) -> u16 {
@@ -121,6 +152,40 @@ pub fn to8_bit(value: u16) -> (u8, u8) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_create_from_opcode() {
+        let change = RegisterChange::create_from_opcode(0x53, Some(0x0A));
+
+        assert!(matches!(change.e, Option::Some(0x0A)));
+
+        let change = RegisterChange::create_from_opcode(0x5B, Some(0x0B));
+
+        assert!(matches!(change.e, Option::Some(0x0B)));
+    }
+
+    #[test]
+    #[should_panic(expected = "0x6 not a valid index for creating a register change from opcode")]
+    fn test_create_from_opcode_fail() {
+        RegisterChange::create_from_opcode(0x06, Some(0x0A));
+    }
+
+    #[test]
+    fn test_from_opcode_index() {
+        let mut registers = Registers::new();
+        registers.a = 0x30;
+
+        assert_eq!(0x30, registers.from_opcode_index(0x07));
+        assert_eq!(0x30, registers.from_opcode_index(0x0F));
+    }
+
+    #[test]
+    #[should_panic(expected = "0x6 not a valid index for register fetching")]
+    fn test_from_opcode_index_fail() {
+        let registers = Registers::new();
+
+        registers.from_opcode_index(0x06);
+    }
 
     #[test]
     fn test_change() {

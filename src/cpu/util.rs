@@ -1,5 +1,7 @@
 use std::num::Wrapping;
 
+pub const BINARY_BASE: u8 = 2;
+
 //Below adders and subtracters make use of Wrapping to safely handle overflows without the program crashing
 pub fn add8_bit(a: u8, b: u8) -> u8 {
     let a = Wrapping(a);
