@@ -949,14 +949,31 @@ pub fn prefixed_execute(cpu: &CPU, op_code: u8) -> StateChange {
         0xB8..=0xBD => reset_bit_register(cpu, op_code, 7),
         0xBE => reset_bit_absolute_hl(cpu, 7),
         0xBF => reset_bit_register(cpu, op_code, 7),
-        _ => StateChange {
-            byte_length: 0,
-            t_states: 0,
-            ime: Option::None,
-            flags: FlagChange::default(),
-            register: RegisterChange::default(),
-            memory: MemoryChange::default()
-        }
+        //SET
+        0xC0..=0xC5 => set_bit_register(cpu, op_code, 0),
+        0xC6 => set_bit_absolute_hl(cpu, 0),
+        0xC7 => set_bit_register(cpu, op_code, 0),
+        0xC8..=0xCD => set_bit_register(cpu, op_code, 1),
+        0xCE => set_bit_absolute_hl(cpu, 1),
+        0xCF => set_bit_register(cpu, op_code, 1),
+        0xD0..=0xD5 => set_bit_register(cpu, op_code, 2),
+        0xD6 => set_bit_absolute_hl(cpu, 2),
+        0xD7 => set_bit_register(cpu, op_code, 2),
+        0xD8..=0xDD => set_bit_register(cpu, op_code, 3),
+        0xDE => set_bit_absolute_hl(cpu, 3),
+        0xDF => set_bit_register(cpu, op_code, 3),
+        0xE0..=0xE5 => set_bit_register(cpu, op_code, 4),
+        0xE6 => set_bit_absolute_hl(cpu, 4),
+        0xE7 => set_bit_register(cpu, op_code, 4),
+        0xE8..=0xED => set_bit_register(cpu, op_code, 5),
+        0xEE => set_bit_absolute_hl(cpu, 5),
+        0xEF => set_bit_register(cpu, op_code, 5),
+        0xF0..=0xF5 => set_bit_register(cpu, op_code, 6),
+        0xF6 => set_bit_absolute_hl(cpu, 6),
+        0xF7 => set_bit_register(cpu, op_code, 6),
+        0xF8..=0xFD => set_bit_register(cpu, op_code, 7),
+        0xFE => set_bit_absolute_hl(cpu, 7),
+        0xFF => set_bit_register(cpu, op_code, 7)
     }
 }
 
@@ -1008,6 +1025,52 @@ fn shift_right_logically(value: u8) -> (u8, bool) {
 //swap upper 4 bits and lower 4 bits
 fn swap(value: u8) -> u8 {
     (value << 4) ^ (value >> 4)
+}
+
+fn set_bit_register(cpu: &CPU, op_code: u8, bit_index: u8) -> StateChange {
+    let test = BINARY_BASE.pow(bit_index as u32);
+    let mut value = cpu.registers.from_opcode_index(op_code);
+
+    if (value & test) != test { //the bit is not set, set it
+        value += test;
+    }
+
+    StateChange {
+        byte_length: 2,
+        t_states: 8,
+        ime: None,
+        flags: FlagChange::default(),
+        register: RegisterChange::create_from_opcode(
+            op_code,
+            Some(value)
+        ),
+        memory: MemoryChange::default()
+    }
+}
+
+fn set_bit_absolute_hl(cpu: &CPU, bit_index: u8) -> StateChange {
+    let test = BINARY_BASE.pow(bit_index as u32);
+    let mut value = cpu.memory[cpu.registers.hl() as usize];
+
+    if (value & test) != test { //the bit is not set, set it
+        value += test;
+    }
+
+    StateChange {
+        byte_length: 2,
+        t_states: 16,
+        ime: None,
+        flags: FlagChange::default(),
+        register: RegisterChange::default(),
+        memory: MemoryChange {
+            changes: vec![
+                MemoryEdit {
+                    key: cpu.registers.hl(),
+                    value
+                }
+            ]
+        }
+    }
 }
 
 fn reset_bit_register(cpu: &CPU, op_code: u8, bit_index: u8) -> StateChange {

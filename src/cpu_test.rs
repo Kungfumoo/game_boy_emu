@@ -16,7 +16,7 @@ fn prepare_cpu() -> CPU {
     cpu
 }
 
-fn get_register(cpu: &mut CPU, index: i32) -> Option<&mut u8> {
+fn get_register(cpu: &mut CPU, index: u8) -> Option<&mut u8> {
     match index {
         0x00 => Option::Some(&mut cpu.registers.b),
         0x01 => Option::Some(&mut cpu.registers.c),
@@ -1188,7 +1188,7 @@ fn test_ld_register_to_hl_absolute() {
 
     for opcode in LD_HL_R_START..0x78 {
         let expected = {
-            let reg = get_register(&mut cpu, (opcode - LD_HL_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -1327,7 +1327,7 @@ fn test_register_add_to_a() { //ADD A, r
         let expected = match opcode {
             0x87 => TO_ADD,
             _ => {
-                let reg = get_register(&mut cpu, (opcode - ADD_A_R_START) as i32);
+                let reg = get_register(&mut cpu, opcode % 0x08);
 
                 if let Option::None = reg {
                     continue;
@@ -1375,7 +1375,7 @@ fn test_register_adc_to_a() { //ADC A, r
         let expected = match opcode {
             0x8F => TO_ADD,
             _ => {
-                let reg = get_register(&mut cpu, (opcode - ADC_A_R_START) as i32);
+                let reg = get_register(&mut cpu, opcode % 0x08);
 
                 if let Option::None = reg {
                     continue;
@@ -1425,7 +1425,7 @@ fn test_register_sub_from_a() { //SUB A, r
 
     for opcode in SUB_A_R_START..0x98 {
         let expected = {
-            let reg = get_register(&mut cpu, (opcode - SUB_A_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -1482,7 +1482,7 @@ fn test_register_sbc_from_a() { //SBC A, r
         let expected = match opcode {
             0x9F => TO_SUB,
             _ => {
-                let reg = get_register(&mut cpu, (opcode - SBC_A_R_START) as i32);
+                let reg = get_register(&mut cpu, opcode % 0x08);
 
                 if let Option::None = reg {
                     continue;
@@ -1535,7 +1535,7 @@ fn test_register_and_to_a() { //AND A, r
         let expected = match opcode {
             0xA7 => TO_AND,
             _ => {
-                let reg = get_register(&mut cpu, (opcode - AND_A_R_START) as i32);
+                let reg = get_register(&mut cpu, opcode % 0x08);
 
                 if let Option::None = reg {
                     continue;
@@ -1595,7 +1595,7 @@ fn test_register_xor_to_a() { //XOR A, r
         let expected = match opcode {
             0xAF => TO_XOR,
             _ => {
-                let reg = get_register(&mut cpu, (opcode - XOR_A_R_START) as i32);
+                let reg = get_register(&mut cpu, opcode % 0x08);
 
                 if let Option::None = reg {
                     continue;
@@ -1665,7 +1665,7 @@ fn test_register_or_to_a() { //OR A, r
         let expected = match opcode {
             0xB7 => TO_OR,
             _ => {
-                let reg = get_register(&mut cpu, (opcode - OR_A_R_START) as i32);
+                let reg = get_register(&mut cpu, opcode % 0x08);
 
                 if let Option::None = reg {
                     continue;
@@ -1722,7 +1722,7 @@ fn test_register_cp_to_a() { //CP A, r
 
     for opcode in CP_A_R_START..0xC0 {
         let expected = {
-            let reg = get_register(&mut cpu, (opcode - CP_A_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2550,7 +2550,7 @@ fn test_rlc_register() { //RLC r8
 
     for opcode in RLC_R_START..0x08 {
         let expected = {
-            let reg = get_register(&mut cpu, (opcode - RLC_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2565,7 +2565,7 @@ fn test_rlc_register() { //RLC r8
 
         let expected = expected.rotate_left(1);
         let actual = {
-            let reg = get_register(&mut cpu, (opcode - RLC_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2608,7 +2608,7 @@ fn test_rrc_register() { //RRC r8
 
     for opcode in RRC_R_START..0x10 {
         let expected = {
-            let reg = get_register(&mut cpu, (opcode - RRC_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2623,7 +2623,7 @@ fn test_rrc_register() { //RRC r8
 
         let expected = expected.rotate_right(1);
         let actual = {
-            let reg = get_register(&mut cpu, (opcode - RRC_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2667,7 +2667,7 @@ fn test_rl_register() { //RL r8
 
     for opcode in RL_R_START..0x18 {
         let expected = {
-            let reg = get_register(&mut cpu, (opcode - RL_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2684,7 +2684,7 @@ fn test_rl_register() { //RL r8
         let should_carry = (expected & 0x80) == 0x80;
         let expected = (expected << 1) + 1; //+1 carry is always set to true for these tests
         let actual = {
-            let reg = get_register(&mut cpu, (opcode - RL_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2737,7 +2737,7 @@ fn test_rr_register() { //RR r8
 
     for opcode in RR_R_START..0x20 {
         let expected = {
-            let reg = get_register(&mut cpu, (opcode - RR_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2754,7 +2754,7 @@ fn test_rr_register() { //RR r8
         let should_carry = (expected & 0x01) == 0x01;
         let expected = (expected >> 1) + 0x80; //+0x80 carry is always set to true for these tests
         let actual = {
-            let reg = get_register(&mut cpu, (opcode - RR_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2805,7 +2805,7 @@ fn test_sla_register() { //SLA r8
 
     for opcode in SLA_R_START..0x28 {
         let expected = {
-            let reg = get_register(&mut cpu, (opcode - SLA_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2820,7 +2820,7 @@ fn test_sla_register() { //SLA r8
 
         let should_carry = (expected & 0x80) == 0x80;
         let actual = {
-            let reg = get_register(&mut cpu, (opcode - SLA_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2871,7 +2871,7 @@ fn test_sra_register() { //SRA r8
 
     for opcode in SRA_R_START..0x30 {
         let expected = {
-            let reg = get_register(&mut cpu, (opcode - SRA_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2886,7 +2886,7 @@ fn test_sra_register() { //SRA r8
 
         let should_carry = (expected & 0x01) == 0x01;
         let actual = {
-            let reg = get_register(&mut cpu, (opcode - SRA_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2937,7 +2937,7 @@ fn test_swap_register() { //SWAP r8
 
     for opcode in SWAP_R_START..0x38 {
         let expected = {
-            let reg = get_register(&mut cpu, (opcode - SWAP_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2951,7 +2951,7 @@ fn test_swap_register() { //SWAP r8
         cpu.execute_with_args(PREFIX, Some(vec![opcode]));
 
         let actual = {
-            let reg = get_register(&mut cpu, (opcode - SWAP_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -2999,7 +2999,7 @@ fn test_srl_register() { //SRL r8
 
     for opcode in SRL_R_START..0x40 {
         let expected = {
-            let reg = get_register(&mut cpu, (opcode - SRL_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -3013,7 +3013,7 @@ fn test_srl_register() { //SRL r8
         cpu.execute_with_args(PREFIX, Some(vec![opcode]));
 
         let actual = {
-            let reg = get_register(&mut cpu, (opcode - SRL_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -3065,9 +3065,9 @@ fn test_bit_register() { //BIT u3, r8
     let mut cpu = prepare_cpu();
 
     for opcode in BIT_R_START..0x80 {
-        let bit_index = (opcode / 16) % 0x04;
+        let bit_index = (opcode / 8) % 0x08;
         let expected = {
-            let reg = get_register(&mut cpu, (opcode - BIT_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -3092,6 +3092,22 @@ fn test_bit_register() { //BIT u3, r8
         assert!(!cpu.flags.subtract);
         assert!(cpu.flags.half_carry);
     }
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0x60() { //BIT 4, B
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.b = 0b00010000;
+    cpu.execute_with_args(PREFIX, Some(vec![0x60]));
+
+    assert!(!cpu.flags.zero);
+
+    cpu.registers.b = 0b00100000;
+    cpu.execute_with_args(PREFIX, Some(vec![0x60]));
+
+    assert!(cpu.flags.zero);
 }
 
 #[test]
@@ -3260,10 +3276,10 @@ fn test_res_register() { //RES u3, r8
     let mut cpu = prepare_cpu();
 
     for opcode in RES_R_START..0xC0 {
-        let bit_index = (opcode / 16) % 0x08;
+        let bit_index = (opcode / 8) % 0x08;
         let test = BINARY_BASE.pow(bit_index as u32);
         let expected = {
-            let reg = get_register(&mut cpu, (opcode - RES_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -3282,7 +3298,7 @@ fn test_res_register() { //RES u3, r8
         cpu.execute_with_args(PREFIX, Some(vec![opcode]));
 
         let actual = {
-            let reg = get_register(&mut cpu, (opcode - RES_R_START) as i32);
+            let reg = get_register(&mut cpu, opcode % 0x08);
 
             if let Option::None = reg {
                 continue;
@@ -3298,6 +3314,17 @@ fn test_res_register() { //RES u3, r8
             opcode
         );
     }
+}
+
+#[test]
+fn test_pre_0x88() { //RES 1, B
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.b = 0b00110111;
+    cpu.execute_with_args(PREFIX, Some(vec![0x88]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0b00110101, cpu.registers.b);
 }
 
 #[test]
@@ -3458,4 +3485,236 @@ fn test_pre_0xBE() { //RES 7, [HL]
     cpu.execute_with_args(PREFIX, Some(vec![0xBE]));
 
     assert_eq!(0b01111001, cpu.memory[0xC001]);
+}
+
+const SET_R_START: u8 = 0xC0;
+#[test]
+fn test_set_register() { //SET u3, r8
+    let mut cpu = prepare_cpu();
+
+    for opcode in SET_R_START..=0xFF {
+        let bit_index = (opcode / 8) % 0x08;
+        let test = BINARY_BASE.pow(bit_index as u32);
+        let expected = {
+            let reg = get_register(&mut cpu, opcode % 0x08);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            let reg = reg.unwrap();
+            *reg = rand::random::<u8>();
+
+            if *reg & test != test { //it is not set
+                *reg + test
+            } else {
+                *reg
+            }
+        };
+
+        cpu.execute_with_args(PREFIX, Some(vec![opcode]));
+
+        let actual = {
+            let reg = get_register(&mut cpu, opcode % 0x08);
+
+            if let Option::None = reg {
+                continue;
+            }
+
+            *reg.unwrap()
+        };
+
+        assert_eq!(
+            expected,
+            actual,
+            "executing PREFIXED {:#02x}",
+            opcode
+        );
+    }
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0xC8() { //SET 1, B
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.b = 0b00110101;
+    cpu.execute_with_args(PREFIX, Some(vec![0xC8]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0b00110111, cpu.registers.b);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0xC6() { //SET 0, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b00000000;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0xC6]));
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(0b00000001, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = 0b00000001;
+    cpu.execute_with_args(PREFIX, Some(vec![0xC6]));
+
+    assert_eq!(0b00000001, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0xCE() { //SET 1, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b00000000;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0xCE]));
+
+    let expected = 0b00000001 << 1;
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(expected, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = expected;
+    cpu.execute_with_args(PREFIX, Some(vec![0xCE]));
+
+    assert_eq!(expected, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0xD6() { //SET 2, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b00000000;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0xD6]));
+
+    let expected = 0b00000001 << 2;
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(expected, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = expected;
+    cpu.execute_with_args(PREFIX, Some(vec![0xD6]));
+
+    assert_eq!(expected, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0xDE() { //SET 3, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b00000000;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0xDE]));
+
+    let expected = 0b00000001 << 3;
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(expected, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = expected;
+    cpu.execute_with_args(PREFIX, Some(vec![0xDE]));
+
+    assert_eq!(expected, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0xE6() { //SET 4, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b00000000;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0xE6]));
+
+    let expected = 0b00000001 << 4;
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(expected, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = expected;
+    cpu.execute_with_args(PREFIX, Some(vec![0xE6]));
+
+    assert_eq!(expected, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0xEE() { //SET 5, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b00000000;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0xEE]));
+
+    let expected = 0b00000001 << 5;
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(expected, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = expected;
+    cpu.execute_with_args(PREFIX, Some(vec![0xEE]));
+
+    assert_eq!(expected, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0xF6() { //SET 6, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b00000000;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0xF6]));
+
+    let expected = 0b00000001 << 6;
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(expected, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = expected;
+    cpu.execute_with_args(PREFIX, Some(vec![0xF6]));
+
+    assert_eq!(expected, cpu.memory[0xC001]);
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn test_pre_0xFE() { //SET 7, [HL]
+    let mut cpu = prepare_cpu();
+
+    cpu.registers.h = 0xC0;
+    cpu.registers.l = 0x01;
+    cpu.memory[0xC001] = 0b00000000;
+
+    cpu.execute_with_args(PREFIX, Some(vec![0xFE]));
+
+    let expected = 0b00000001 << 7;
+
+    assert_eq!(2, cpu.registers.program_counter);
+    assert_eq!(expected, cpu.memory[0xC001]);
+
+    cpu.memory[0xC001] = expected;
+    cpu.execute_with_args(PREFIX, Some(vec![0xFE]));
+
+    assert_eq!(expected, cpu.memory[0xC001]);
 }
