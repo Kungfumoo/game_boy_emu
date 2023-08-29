@@ -57,7 +57,7 @@ pub struct Registers {
 impl Registers {
     pub fn new() -> Registers {
         Registers {
-            program_counter: 0x0150, //TODO: may not be correct
+            program_counter: 0x0000, //https://gbdev.io/pandocs/Power_Up_Sequence.html ~ Boot ROM at 0000 then cartrige ROM at 0100
             stack_pointer: 0x05, //TODO: may not be correct
             a: 0x00,
             b: 0x00,

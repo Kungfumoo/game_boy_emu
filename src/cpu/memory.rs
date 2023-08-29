@@ -1,6 +1,6 @@
 use std::ops::{Index, IndexMut}; //https://doc.rust-lang.org/std/ops/trait.Index.html
 
-pub const MEMORY_SIZE: usize = 65536;
+const MEMORY_SIZE: usize = 0xFFFF;
 
 pub struct MemoryEdit {
     pub key: u16,

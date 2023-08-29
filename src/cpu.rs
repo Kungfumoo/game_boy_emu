@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 //Sharp SM83 CPU
 use registers::Registers;
 use flags::Flags;
@@ -109,6 +111,16 @@ impl CPU {
         );
 
         self.update(&change)
+    }
+
+    //map values by bulk to memory, mem_range specifies where in memory
+    pub fn memory_map(&mut self, mem_range: Range<usize>, values: Vec<u8>) {
+        let mut idx = 0;
+
+        for addr in mem_range {
+            self.memory[addr] = values[idx];
+            idx += 1;
+        }
     }
 
     fn update(&mut self, change: &StateChange) {
