@@ -1036,7 +1036,6 @@ fn set_bit_register(cpu: &CPU, op_code: u8, bit_index: u8) -> StateChange {
     }
 
     StateChange {
-        byte_length: 2,
         t_states: 8,
         ime: None,
         flags: FlagChange::default(),
@@ -1057,7 +1056,6 @@ fn set_bit_absolute_hl(cpu: &CPU, bit_index: u8) -> StateChange {
     }
 
     StateChange {
-        byte_length: 2,
         t_states: 16,
         ime: None,
         flags: FlagChange::default(),
@@ -1082,7 +1080,6 @@ fn reset_bit_register(cpu: &CPU, op_code: u8, bit_index: u8) -> StateChange {
     }
 
     StateChange {
-        byte_length: 2,
         t_states: 8,
         ime: None,
         flags: FlagChange::default(),
@@ -1103,7 +1100,6 @@ fn reset_bit_absolute_hl(cpu: &CPU, bit_index: u8) -> StateChange {
     }
 
     StateChange {
-        byte_length: 2,
         t_states: 16,
         ime: None,
         flags: FlagChange::default(),
@@ -1125,7 +1121,6 @@ fn bit_test_register(cpu: &CPU, op_code: u8, bit_index: u8) -> StateChange {
     let set_zero = value & test != test;
 
     StateChange {
-        byte_length: 2,
         t_states: 8,
         ime: None,
         flags: FlagChange {
@@ -1145,7 +1140,6 @@ fn bit_test_absolute_hl(cpu: &CPU, bit_index: u8) -> StateChange {
     let set_zero = value & test != test;
 
     StateChange {
-        byte_length: 2,
         t_states: 12,
         ime: None,
         flags: FlagChange {
@@ -1161,7 +1155,6 @@ fn bit_test_absolute_hl(cpu: &CPU, bit_index: u8) -> StateChange {
 
 fn swap_absolute(change: MemoryChange, set_zero: bool) -> StateChange {
     StateChange {
-        byte_length: 2,
         t_states: 16,
         ime: Option::None,
         flags: FlagChange {
@@ -1175,7 +1168,6 @@ fn swap_absolute(change: MemoryChange, set_zero: bool) -> StateChange {
 
 fn swap_register(change: RegisterChange, set_zero: bool) -> StateChange {
     StateChange {
-        byte_length: 2,
         t_states: 8,
         ime: Option::None,
         flags: FlagChange {
@@ -1189,7 +1181,6 @@ fn swap_register(change: RegisterChange, set_zero: bool) -> StateChange {
 
 fn rotate_shift_absolute(change: MemoryChange, set_carry: bool, set_zero: bool) -> StateChange {
     StateChange {
-        byte_length: 2,
         t_states: 16,
         ime: Option::None,
         flags: FlagChange {
@@ -1204,7 +1195,6 @@ fn rotate_shift_absolute(change: MemoryChange, set_carry: bool, set_zero: bool) 
 
 fn rotate_shift_register(change: RegisterChange, set_carry: bool, set_zero: bool) -> StateChange {
     StateChange {
-        byte_length: 2,
         t_states: 8,
         ime: Option::None,
         flags: FlagChange {

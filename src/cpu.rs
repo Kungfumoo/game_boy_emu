@@ -3,7 +3,7 @@ use std::ops::Range;
 //Sharp SM83 CPU
 use registers::Registers;
 use flags::Flags;
-use instructions::StateChange;
+use instructions::{StateChange, get_byte_length};
 use memory::Memory;
 
 mod instructions;
@@ -96,8 +96,10 @@ impl CPU {
     }
 
     pub fn execute_with_args(&mut self, op_code: u8, args: Option<Vec<u8>>) {
+        let pc = self.registers.program_counter;
+
         if let Option::Some(args) = args {
-            let mut pc = self.registers.program_counter + 1;
+            let mut pc = pc + 1;
 
             for i in &args {
                 self.memory[pc as usize] = *i;
@@ -110,6 +112,7 @@ impl CPU {
             op_code
         );
 
+        self.registers.program_counter = pc.wrapping_add(get_byte_length(op_code) as u16);
         self.update(&change)
     }
 
@@ -138,7 +141,7 @@ impl CPU {
                 return;
             }
 
-            let bytes = 1; //TODO: need to know the byte length at the moment
+            let bytes = get_byte_length(op_code) as usize;
             if bytes > 1 {
                 let args = self.memory.read_with_range(pc..=(pc + bytes));
 
@@ -151,10 +154,6 @@ impl CPU {
     }
 
     fn update(&mut self, change: &StateChange) {
-        self.registers.program_counter = self.registers.program_counter.wrapping_add_signed(
-            change.byte_length
-        );
-
         //TODO: t states - according to this article: https://forums.nesdev.org/viewtopic.php?t=14014 we may not need to care
 
         if let ImeStatus::SCHEDULED = self.ime {

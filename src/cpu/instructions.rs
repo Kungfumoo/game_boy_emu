@@ -20,12 +20,61 @@ use super::{
 mod prefixed;
 
 pub struct StateChange {
-    pub byte_length: i16,
     pub t_states: u8,
     pub ime: Option<ImeStatus>,
     pub flags: FlagChange,
     pub register: RegisterChange,
     pub memory: MemoryChange
+}
+
+pub fn get_byte_length(op_code: u8) -> u8 {
+    match op_code {
+        0x01 => 3,
+        0x11 => 3,
+        0x21 => 3,
+        0x31 => 3,
+        0x10 => 2,
+        0x20 => 2,
+        0x30 => 2,
+        0x06 => 2,
+        0x16 => 2,
+        0x26 => 2,
+        0x36 => 2,
+        0x08 => 3,
+        0x18 => 2,
+        0x28 => 2,
+        0x38 => 2,
+        0x0E => 2,
+        0x1E => 2,
+        0x2E => 2,
+        0x3E => 2,
+        0xE0 => 2,
+        0xF0 => 2,
+        0xC2 => 3,
+        0xD2 => 3,
+        0xC3 => 3,
+        0xC4 => 3,
+        0xD4 => 3,
+        0xC6 => 2,
+        0xD6 => 2,
+        0xE6 => 2,
+        0xF6 => 2,
+        0xE8 => 2,
+        0xF8 => 2,
+        0xCA => 3,
+        0xDA => 3,
+        0xEA => 3,
+        0xFA => 3,
+        0xCC => 3,
+        0xDC => 3,
+        0xCD => 3,
+        0xCE => 2,
+        0xDE => 2,
+        0xEE => 2,
+        0xFE => 2,
+        0xCB => 2, //PREFIX (always 2)
+        _ => 1
+    }
 }
 
 //How to interpret instruction comments:
@@ -105,7 +154,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0x08 => StateChange { //LD [n16], SP (load stack pointer into memory)
-            byte_length: 3,
             t_states: 20,
             ime: Option::None,
             flags: FlagChange::default(),
@@ -197,7 +245,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0x10 => StateChange { //STOP - TODO: something about switching between power modes on GBC cpu
-            byte_length: 2,
             ..nop()
         },
         0x11 => ld16_immediate({ //LD DE, u16
@@ -281,7 +328,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             #[allow(overflowing_literals)]
             let modifier = cpu.memory[(pc + 1) as usize] as i8;
 
-            relative_jmp(modifier)
+            relative_jmp(pc, modifier)
         },
         0x19 => add_to_hl( //ADD HL, DE
             cpu.registers.hl(),
@@ -363,7 +410,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             #[allow(overflowing_literals)]
             let modifier = cpu.memory[(pc + 1) as usize] as i8;
 
-            relative_jmp(modifier)
+            relative_jmp(pc, modifier)
         },
         0x21 => ld16_immediate({ //LD HL, u16
             let pc = cpu.registers.program_counter;
@@ -463,7 +510,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
 
             StateChange {
-                byte_length: 1,
                 t_states: 4,
                 ime: Option::None,
                 memory: MemoryChange::default(),
@@ -489,7 +535,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             #[allow(overflowing_literals)]
             let modifier = cpu.memory[(pc + 1) as usize] as i8;
 
-            relative_jmp(modifier)
+            relative_jmp(pc, modifier)
         },
         0x29 => add_to_hl( //ADD HL, HL
             cpu.registers.hl(),
@@ -548,7 +594,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             ..RegisterChange::default()
         }),
         0x2F => StateChange { //CPL
-            byte_length: 1,
             t_states: 4,
             ime: Option::None,
             flags: FlagChange {
@@ -572,7 +617,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             #[allow(overflowing_literals)]
             let modifier = cpu.memory[(pc + 1) as usize] as i8;
 
-            relative_jmp(modifier)
+            relative_jmp(pc, modifier)
         },
         0x31 => ld16_immediate({ //LD SP, u16
             let pc = cpu.registers.program_counter;
@@ -658,7 +703,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let arg = cpu.memory[add16_bit(pc, 1) as usize];
 
             StateChange {
-                byte_length: 2,
                 t_states: 12,
                 ime: Option::None,
                 flags: FlagChange::default(),
@@ -674,7 +718,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         },
         0x37 => StateChange { //SCF (Set Carry Flag)
-            byte_length: 1,
             t_states: 4,
             ime: Option::None,
             flags: FlagChange {
@@ -696,7 +739,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             #[allow(overflowing_literals)]
             let modifier = cpu.memory[(pc + 1) as usize] as i8;
 
-            relative_jmp(modifier)
+            relative_jmp(pc, modifier)
         },
         0x39 => add_to_hl( //ADD HL, SP
             cpu.registers.hl(),
@@ -753,7 +796,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             ..RegisterChange::default()
         }),
         0x3F => StateChange { //CCF (Complement/Invert Carry Flag)
-            byte_length: 1,
             t_states: 4,
             ime: Option::None,
             flags: FlagChange {
@@ -1476,7 +1518,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         ),
         0xC6 => StateChange { //ADD A, n8
-            byte_length: 2,
             t_states: 8,
             ..add_to_a(
                 cpu.registers.a,
@@ -1540,7 +1581,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
 
             StateChange {
-                byte_length: 2,
                 t_states: 8,
                 ..add_to_a(cpu.registers.a, operand)
             }
@@ -1606,7 +1646,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         ),
         0xD6 => StateChange { //SUB A, n8
-            byte_length: 2,
             t_states: 8,
             ..sub_from_a(
                 cpu.registers.a,
@@ -1661,7 +1700,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
 
             StateChange {
-                byte_length: 2,
                 t_states: 8,
                 ..sub_from_a(cpu.registers.a, operand)
             }
@@ -1671,7 +1709,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             0x18
         ),
         0xE0 => StateChange { //LDH [a8], A
-            byte_length: 2,
             t_states: 12,
             ..ld_to_absolute(MemoryChange {
                 changes: vec![
@@ -1694,7 +1731,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         ),
         0xE2 => StateChange { //LDH [C], A
-            byte_length: 1,
             t_states: 8,
             ..ld_to_absolute(MemoryChange {
                 changes: vec![
@@ -1721,7 +1757,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         ),
         0xE6 => StateChange { //AND A, n8
-            byte_length: 2,
             t_states: 8,
             ..and_to_a(
                 cpu.registers.a,
@@ -1741,7 +1776,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
 
             StateChange {
-                byte_length: 2,
                 t_states: 16,
                 ime: None,
                 flags: FlagChange {
@@ -1758,12 +1792,10 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         },
         0xE9 => StateChange { //JP HL
-            byte_length: 1,
             t_states: 4,
             ..absolute_jmp(cpu.registers.hl())
         },
         0xEA => StateChange { //LD [a16], A
-            byte_length: 3,
             t_states: 16,
             ..ld_to_absolute(
                 MemoryChange {
@@ -1778,7 +1810,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0xEE => StateChange { //XOR A, n8
-            byte_length: 2,
             t_states: 8,
             ..xor_to_a(
                 cpu.registers.a,
@@ -1790,7 +1821,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             0x28
         ),
         0xF0 => StateChange { //LDH A, [a8]
-            byte_length: 2,
             t_states: 12,
             ..ld_from_absolute(RegisterChange {
                 a: {
@@ -1815,7 +1845,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0xF2 => StateChange { //LDH A, [C]
-            byte_length: 1,
             t_states: 8,
             ..ld_from_absolute(RegisterChange {
                 a: {
@@ -1827,7 +1856,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             })
         },
         0xF3 => StateChange { //DI
-            byte_length: 1,
             t_states: 4,
             ime: Some(ImeStatus::UNSET),
             flags: FlagChange::default(),
@@ -1850,7 +1878,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         ),
         0xF6 => StateChange { //OR A, n8
-            byte_length: 2,
             t_states: 8,
             ..or_to_a(
                 cpu.registers.a,
@@ -1874,7 +1901,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             );
 
             StateChange {
-                byte_length: 2,
                 t_states: 12,
                 ime: None,
                 flags: FlagChange {
@@ -1901,7 +1927,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             )
         },
         0xFA => StateChange { //LD A, [a16]
-            byte_length: 3,
             t_states: 16,
             ..ld_from_absolute(RegisterChange {
                 a: Some(
@@ -1914,7 +1939,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             })
         },
         0xFB => StateChange { //EI
-            byte_length: 1,
             t_states: 4,
             ime: Some(ImeStatus::SCHEDULED),
             flags: FlagChange::default(),
@@ -1922,7 +1946,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             memory: MemoryChange::default()
         },
         0xFE => StateChange { //CP A, n8
-            byte_length: 2,
             t_states: 8,
             ..cp_to_a(
                 cpu.registers.a,
@@ -1934,7 +1957,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             0x38
         ),
         _ => StateChange {
-            byte_length: 0,
             t_states: 0,
             ime: Option::None,
             flags: FlagChange::default(),
@@ -1946,7 +1968,6 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
 
 fn push_from_register_16_bit(sp: u16, change: MemoryChange) -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 16,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -1960,7 +1981,6 @@ fn push_from_register_16_bit(sp: u16, change: MemoryChange) -> StateChange {
 
 fn pop_to_register_16_bit(sp: u16, change: RegisterChange) -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 12,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -1974,7 +1994,6 @@ fn pop_to_register_16_bit(sp: u16, change: RegisterChange) -> StateChange {
 
 fn no_ret() -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 8,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -1990,7 +2009,6 @@ fn ret(cpu: &CPU) -> StateChange {
     let new_addr = to16_bit(msb, lsb);
 
     StateChange {
-        byte_length: 1,
         t_states: 16,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -2005,7 +2023,6 @@ fn ret(cpu: &CPU) -> StateChange {
 
 fn no_call() -> StateChange {
     StateChange {
-        byte_length: 3,
         t_states: 12,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -2016,7 +2033,6 @@ fn no_call() -> StateChange {
 
 fn restart(cpu: &CPU, vector: u8) -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 16,
         ..call(cpu, to16_bit(vector, 0x00))
     }
@@ -2028,7 +2044,6 @@ fn call(cpu: &CPU, new_addr: u16) -> StateChange {
     let (msb, lsb) = to8_bit(current_address);
 
     StateChange {
-        byte_length: 3,
         t_states: 24,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -2054,7 +2069,6 @@ fn call(cpu: &CPU, new_addr: u16) -> StateChange {
 
 fn absolute_jmp(address: u16) -> StateChange {
     StateChange {
-        byte_length: 3,
         t_states: 16,
         ime: Option::None,
         register: RegisterChange {
@@ -2068,7 +2082,6 @@ fn absolute_jmp(address: u16) -> StateChange {
 
 fn no_absolute_jmp() -> StateChange {
     StateChange {
-        byte_length: 3,
         t_states: 12,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -2079,7 +2092,6 @@ fn no_absolute_jmp() -> StateChange {
 
 fn no_relative_jmp() -> StateChange {
     StateChange {
-        byte_length: 2,
         t_states: 8,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -2088,13 +2100,17 @@ fn no_relative_jmp() -> StateChange {
     }
 }
 
-fn relative_jmp(modifier: i8) -> StateChange {
+fn relative_jmp(pc: u16, modifier: i8) -> StateChange {
+    let pc = pc.wrapping_add_signed((2 + modifier).into());
+
     StateChange {
-        byte_length: (2 + modifier).into(),
         t_states: 12,
         ime: Option::None,
         flags: FlagChange::default(),
-        register: RegisterChange::default(),
+        register: RegisterChange {
+            pc: Some(pc),
+            ..RegisterChange::default()
+        },
         memory: MemoryChange::default()
     }
 }
@@ -2103,7 +2119,6 @@ fn cp_to_a(a_value: u8, operand: u8) -> StateChange {
     let new_value = sub8_bit(a_value, operand);
 
     StateChange {
-        byte_length: 1,
         t_states: 4,
         ime: Option::None,
         flags: FlagChange {
@@ -2121,7 +2136,6 @@ fn or_to_a(a_value: u8, operand: u8) -> StateChange {
     let new_value = a_value | operand;
 
     StateChange {
-        byte_length: 1,
         t_states: 4,
         ime: Option::None,
         flags: FlagChange {
@@ -2142,7 +2156,6 @@ fn xor_to_a(a_value: u8, operand: u8) -> StateChange {
     let new_value = a_value ^ operand;
 
     StateChange {
-        byte_length: 1,
         t_states: 4,
         ime: Option::None,
         flags: FlagChange {
@@ -2163,7 +2176,6 @@ fn and_to_a(a_value: u8, operand: u8) -> StateChange {
     let new_value = a_value & operand;
 
     StateChange {
-        byte_length: 1,
         t_states: 4,
         ime: Option::None,
         flags: FlagChange {
@@ -2184,7 +2196,6 @@ fn add_to_a(a_value: u8, operand: u8) -> StateChange {
     let new_value = add8_bit(a_value, operand);
 
     StateChange {
-        byte_length: 1,
         t_states: 4,
         ime: Option::None,
         flags: FlagChange {
@@ -2205,7 +2216,6 @@ fn sub_from_a(a_value: u8, operand: u8) -> StateChange {
     let new_value = sub8_bit(a_value, operand);
 
     StateChange {
-        byte_length: 1,
         t_states: 4,
         ime: Option::None,
         flags: FlagChange {
@@ -2224,7 +2234,6 @@ fn sub_from_a(a_value: u8, operand: u8) -> StateChange {
 
 fn add_to_hl(hl_value: u16, operand: u16) -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 8,
         ime: Option::None,
         flags: FlagChange {
@@ -2248,7 +2257,6 @@ fn add_to_hl(hl_value: u16, operand: u16) -> StateChange {
 
 fn dec_absolute(change: MemoryChange, set_zero: bool, set_half_carry: bool) -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 12,
         ime: Option::None,
         flags: FlagChange {
@@ -2264,7 +2272,6 @@ fn dec_absolute(change: MemoryChange, set_zero: bool, set_half_carry: bool) -> S
 
 fn dec8_bit(change: RegisterChange, set_zero: bool, set_half_carry: bool) -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 4,
         ime: Option::None,
         flags: FlagChange {
@@ -2280,7 +2287,6 @@ fn dec8_bit(change: RegisterChange, set_zero: bool, set_half_carry: bool) -> Sta
 
 fn dec16_bit(change: RegisterChange) -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 8,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -2291,7 +2297,6 @@ fn dec16_bit(change: RegisterChange) -> StateChange {
 
 fn inc_absolute(change: MemoryChange, set_zero: bool, set_half_carry: bool) -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 12,
         ime: Option::None,
         flags: FlagChange {
@@ -2307,7 +2312,6 @@ fn inc_absolute(change: MemoryChange, set_zero: bool, set_half_carry: bool) -> S
 
 fn inc8_bit(change: RegisterChange, set_zero: bool, set_half_carry: bool) -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 4,
         ime: Option::None,
         flags: FlagChange {
@@ -2323,7 +2327,6 @@ fn inc8_bit(change: RegisterChange, set_zero: bool, set_half_carry: bool) -> Sta
 
 fn inc16_bit(change: RegisterChange) -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 8,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -2334,7 +2337,6 @@ fn inc16_bit(change: RegisterChange) -> StateChange {
 
 fn ld_to_absolute(change: MemoryChange) -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 8,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -2345,7 +2347,6 @@ fn ld_to_absolute(change: MemoryChange) -> StateChange {
 
 fn ld_from_absolute(change: RegisterChange) -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 8,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -2356,7 +2357,6 @@ fn ld_from_absolute(change: RegisterChange) -> StateChange {
 
 fn ld_immediate(change: RegisterChange) -> StateChange {
     StateChange {
-        byte_length: 2,
         t_states: 8,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -2367,7 +2367,6 @@ fn ld_immediate(change: RegisterChange) -> StateChange {
 
 fn ld16_immediate(change: RegisterChange) -> StateChange {
     StateChange {
-        byte_length: 3,
         t_states: 12,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -2378,7 +2377,6 @@ fn ld16_immediate(change: RegisterChange) -> StateChange {
 
 fn ld_register_to_register(change: RegisterChange) -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 4,
         ime: Option::None,
         flags: FlagChange::default(),
@@ -2389,7 +2387,6 @@ fn ld_register_to_register(change: RegisterChange) -> StateChange {
 
 fn rotate_register(change: RegisterChange, set_carry: bool) -> StateChange {
     StateChange {
-        byte_length: 1,
         t_states: 4,
         ime: Option::None,
         flags: FlagChange {
@@ -2404,7 +2401,6 @@ fn rotate_register(change: RegisterChange, set_carry: bool) -> StateChange {
 fn nop() -> StateChange {
     //do nothing
     StateChange {
-        byte_length: 1,
         t_states: 4,
         ime: Option::None,
         flags: FlagChange::default(),
