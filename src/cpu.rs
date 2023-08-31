@@ -116,10 +116,15 @@ impl CPU {
     //map values by bulk to memory, mem_range specifies where in memory
     pub fn memory_map(&mut self, mem_range: Range<usize>, values: Vec<u8>) {
         let mut idx = 0;
+        let len = values.len();
 
         for addr in mem_range {
             self.memory[addr] = values[idx];
             idx += 1;
+
+            if idx >= len {
+                return;
+            }
         }
     }
 

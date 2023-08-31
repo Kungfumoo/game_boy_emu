@@ -7,11 +7,11 @@ pub struct GameBoy {
 }
 
 impl GameBoy {
-    pub fn init(rom: [u8; CARTRIDGE_ROM]) -> GameBoy {
+    pub fn init(rom: Vec<u8>) -> GameBoy {
         let mut cpu = CPU::new();
         cpu.memory_map(
             0x0000..CARTRIDGE_ROM ,
-            Vec::from(rom)
+            rom
         );
 
         GameBoy {
