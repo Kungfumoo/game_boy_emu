@@ -21,7 +21,8 @@ fn main() {
         panic!("Error reading file {}, Error: {}", BOOT_ROM_NAME, error);
     }
 
-    let gb = GameBoy::init(rom);
+    let mut gb = GameBoy::init(rom);
 
+    gb.run();
     gb.status();
 }

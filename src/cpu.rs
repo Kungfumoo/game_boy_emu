@@ -128,6 +128,28 @@ impl CPU {
         }
     }
 
+    //TODO: speed?
+    pub fn run(&mut self) {
+        loop {
+            let pc = self.registers.program_counter as usize;
+            let op_code = self.memory[pc];
+
+            if op_code == 0x00 {
+                return;
+            }
+
+            let bytes = 1; //TODO: need to know the byte length at the moment
+            if bytes > 1 {
+                let args = self.memory.read_with_range(pc..=(pc + bytes));
+
+                self.execute_with_args(op_code, Some(args));
+                continue;
+            }
+
+            self.execute(op_code);
+        }
+    }
+
     fn update(&mut self, change: &StateChange) {
         self.registers.program_counter = self.registers.program_counter.wrapping_add_signed(
             change.byte_length

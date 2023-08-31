@@ -1,4 +1,4 @@
-use std::ops::{Index, IndexMut}; //https://doc.rust-lang.org/std/ops/trait.Index.html
+use std::ops::{Index, IndexMut, RangeInclusive};
 
 const MEMORY_SIZE: usize = 0xFFFF;
 
@@ -49,6 +49,10 @@ impl Memory {
             self[mem_change.key as usize] = mem_change.value;
         }
     }
+
+    pub fn read_with_range(&self, range: RangeInclusive<usize>) -> Vec<u8> {
+        Vec::from(&self.memory[range])
+    }
 }
 
 #[cfg(test)]
@@ -61,6 +65,19 @@ mod tests {
 
         memory[0x01] = 10;
         assert_eq!(memory[0x01], 10);
+    }
+
+    #[test]
+    fn test_read_with_range() {
+        let mut memory = Memory::new();
+
+        for n in 0x00..=0x05 as u8 {
+            memory[n as usize] = n;
+        }
+
+        let vec_slice = memory.read_with_range(0x00..=0x05);
+
+        assert_eq!(vec_slice[0x02], 0x02);
     }
 
     #[test]

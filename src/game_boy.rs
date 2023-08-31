@@ -19,6 +19,10 @@ impl GameBoy {
         }
     }
 
+    pub fn run(&mut self) {
+        self.cpu.run();
+    }
+
     pub fn status(&self) {
         self.cpu.status();
     }
