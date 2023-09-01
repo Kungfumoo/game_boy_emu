@@ -23,6 +23,7 @@ fn main() {
 
     let mut gb = GameBoy::init(rom);
 
+    gb.status();
     gb.run();
     gb.status();
 }

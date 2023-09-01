@@ -47,8 +47,8 @@ impl CPU {
 
     pub fn status(&self) {
         println!("\n===CPU STATUS===");
-        println!("PC: {}", self.registers.program_counter);
-        println!("SP: {}", self.registers.stack_pointer);
+        println!("PC: {:#02x}", self.registers.program_counter);
+        println!("SP: {:#02x}", self.registers.stack_pointer);
         println!(
             "IME: {}",
             match self.ime {
@@ -58,7 +58,7 @@ impl CPU {
             }
         );
         println!(
-            "==REG==\nA: {}, B: {}, C: {}, D: {}, E: {}, F: {}, H: {}, L: {}",
+            "==REG==\nA: {:#02x}, B: {:#02x}, C: {:#02x}, D: {:#02x}, E: {:#02x}, F: {:#02x}, H: {:#02x}, L: {:#02x}",
             self.registers.a,
             self.registers.b,
             self.registers.c,
@@ -76,12 +76,12 @@ impl CPU {
             self.flags.carry
         );
         println!(
-            "==MEMORY==\n0xC001: {}\n0xC002: {}",
+            "==MEMORY==\n0xC001: {:#02x}\n0xC002: {:#02x}",
             self.memory[0xC001],
             self.memory[0xC002]
         );
         println!(
-            "==STACK==\n0x0004: {}\n0x0003: {}\n0x0002: {}\n0x0001: {}\n0x0000: {}",
+            "==STACK==\n0x0004: {:#02x}\n0x0003: {:#02x}\n0x0002: {:#02x}\n0x0001: {:#02x}\n0x0000: {:#02x}",
             self.memory[0x0004],
             self.memory[0x0003],
             self.memory[0x0002],
@@ -90,7 +90,7 @@ impl CPU {
         );
     }
 
-    //execute methods mainly used for testing
+    //execute methods used for testing instructions in isolation
     pub fn execute(&mut self, op_code: u8) {
         self.execute_with_args(op_code, Option::None);
     }
@@ -134,22 +134,20 @@ impl CPU {
     //TODO: speed?
     pub fn run(&mut self) {
         loop {
-            let pc = self.registers.program_counter as usize;
-            let op_code = self.memory[pc];
+            let pc = self.registers.program_counter;
+            let op_code = self.memory[pc as usize];
 
             if op_code == 0x00 {
                 return;
             }
 
-            let bytes = get_byte_length(op_code) as usize;
-            if bytes > 1 {
-                let args = self.memory.read_with_range(pc..=(pc + bytes));
+            let change = instructions::execute(
+                self,
+                op_code
+            );
 
-                self.execute_with_args(op_code, Some(args));
-                continue;
-            }
-
-            self.execute(op_code);
+            self.registers.program_counter = pc.wrapping_add(get_byte_length(op_code) as u16);
+            self.update(&change);
         }
     }
 
