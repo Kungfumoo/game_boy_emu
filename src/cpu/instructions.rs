@@ -102,7 +102,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         }),
         0x03 => inc16_bit({ //INC BC
             let bc = add16_bit(cpu.registers.bc(), 1);
-            let (b, c) = to8_bit(bc);
+            let (c, b) = to8_bit(bc);
 
             RegisterChange {
                 b: Option::Some(b),
@@ -165,17 +165,17 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                     cpu.memory[add16_bit(pc, 2) as usize]
                 );
 
-                let (left, right) = to8_bit(cpu.registers.stack_pointer);
+                let (lsb, msb) = to8_bit(cpu.registers.stack_pointer);
 
                 MemoryChange {
                     changes: vec![
                         MemoryEdit {
                             key: addr,
-                            value: left
+                            value: lsb
                         },
                         MemoryEdit {
                             key: add16_bit(addr, 1),
-                            value: right
+                            value: msb
                         }
                     ]
                 }
@@ -193,7 +193,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         ),
         0x0B => dec16_bit({ //DEC BC
             let bc = sub16_bit(cpu.registers.bc(), 1);
-            let (b, c) = to8_bit(bc);
+            let (c, b) = to8_bit(bc);
 
             RegisterChange {
                 b: Option::Some(b),
@@ -266,7 +266,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         }),
         0x13 => inc16_bit({ //INC DE
             let de = add16_bit(cpu.registers.de(), 1);
-            let (d, e) = to8_bit(de);
+            let (e, d) = to8_bit(de);
 
             RegisterChange {
                 d: Option::Some(d),
@@ -342,7 +342,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         ),
         0x1B => dec16_bit({ //DEC DE
             let de = sub16_bit(cpu.registers.de(), 1);
-            let (d, e) = to8_bit(de);
+            let (e, d) = to8_bit(de);
 
             RegisterChange {
                 d: Option::Some(d),
@@ -416,8 +416,8 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             let pc = cpu.registers.program_counter;
 
             RegisterChange {
-                h: Some(cpu.memory[add16_bit(pc, 1) as usize]),
-                l: Some(cpu.memory[add16_bit(pc, 2) as usize]),
+                l: Some(cpu.memory[add16_bit(pc, 1) as usize]),
+                h: Some(cpu.memory[add16_bit(pc, 2) as usize]),
                 ..RegisterChange::default()
             }
         }),
@@ -432,7 +432,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ])
             });
 
-            let (h, l) = to8_bit(add16_bit(addr, 1));
+            let (l, h) = to8_bit(add16_bit(addr, 1));
 
             StateChange {
                 register: RegisterChange {
@@ -445,7 +445,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         },
         0x23 => inc16_bit({ //INC HL
             let hl = add16_bit(cpu.registers.hl(), 1);
-            let (h, l) = to8_bit(hl);
+            let (l, h) = to8_bit(hl);
 
             RegisterChange {
                 h: Option::Some(h),
@@ -542,7 +542,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu.registers.hl()
         ),
         0x2A => { //LD A, (HL+)
-            let (h, l) = to8_bit(add16_bit(cpu.registers.hl(), 1));
+            let (l, h) = to8_bit(add16_bit(cpu.registers.hl(), 1));
 
             ld_from_absolute(RegisterChange {
                 a: Some(cpu.memory[cpu.registers.hl() as usize]),
@@ -553,7 +553,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         },
         0x2B => dec16_bit({ //DEC HL
             let hl = sub16_bit(cpu.registers.hl(), 1);
-            let (h, l) = to8_bit(hl);
+            let (l, h) = to8_bit(hl);
 
             RegisterChange {
                 h: Option::Some(h),
@@ -641,7 +641,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 ])
             });
 
-            let (h, l) = to8_bit(
+            let (l, h) = to8_bit(
                 sub16_bit(addr, 1)
             );
 
@@ -746,7 +746,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             cpu.registers.stack_pointer
         ),
         0x3A => { //LD A, (HL-)
-            let (h, l) = to8_bit(sub16_bit(cpu.registers.hl(), 1));
+            let (l, h) = to8_bit(sub16_bit(cpu.registers.hl(), 1));
 
             ld_from_absolute(RegisterChange {
                 a: Some(cpu.memory[cpu.registers.hl() as usize]),
@@ -1714,8 +1714,8 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 changes: vec![
                     MemoryEdit {
                         key: to16_bit(
-                            0xFF,
-                            cpu.memory[(cpu.registers.program_counter + 1) as usize]
+                            cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                            0xFF
                         ),
                         value: cpu.registers.a
                     }
@@ -1735,7 +1735,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             ..ld_to_absolute(MemoryChange {
                 changes: vec![
                     MemoryEdit {
-                        key: to16_bit(0xFF, cpu.registers.c),
+                        key: to16_bit(cpu.registers.c, 0xFF),
                         value: cpu.registers.a
                     }
                 ]
@@ -1825,8 +1825,8 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             ..ld_from_absolute(RegisterChange {
                 a: {
                     let addr = to16_bit(
-                        0xFF,
-                        cpu.memory[(cpu.registers.program_counter + 1) as usize]
+                        cpu.memory[(cpu.registers.program_counter + 1) as usize],
+                        0xFF
                     );
 
                     Some(cpu.memory[addr as usize])
@@ -1848,7 +1848,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             t_states: 8,
             ..ld_from_absolute(RegisterChange {
                 a: {
-                    let addr = to16_bit(0xFF, cpu.registers.c);
+                    let addr = to16_bit(cpu.registers.c, 0xFF);
 
                     Some(cpu.memory[addr as usize])
                 },
@@ -1896,7 +1896,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
                 operand = 0xFF00 | operand; //convert to signed 16bit
             }
 
-            let (h, l) = to8_bit(
+            let (l, h) = to8_bit(
                 add16_bit(cpu.registers.stack_pointer, operand)
             );
 
@@ -2006,7 +2006,7 @@ fn no_ret() -> StateChange {
 fn ret(cpu: &CPU) -> StateChange {
     let lsb = cpu.memory[cpu.registers.stack_pointer as usize];
     let msb = cpu.memory[(cpu.registers.stack_pointer + 1) as usize];
-    let new_addr = to16_bit(msb, lsb);
+    let new_addr = to16_bit(lsb, msb);
 
     StateChange {
         t_states: 16,
@@ -2041,7 +2041,7 @@ fn restart(cpu: &CPU, vector: u8) -> StateChange {
 //calls a subroutine. JP to the new addr and pushes the old address to the stack
 fn call(cpu: &CPU, new_addr: u16) -> StateChange {
     let current_address = cpu.registers.program_counter + 3;
-    let (msb, lsb) = to8_bit(current_address);
+    let (lsb, msb) = to8_bit(current_address);
 
     StateChange {
         t_states: 24,
@@ -2244,7 +2244,7 @@ fn add_to_hl(hl_value: u16, operand: u16) -> StateChange {
         },
         memory: MemoryChange::default(),
         register: {
-            let (h, l) = to8_bit(add16_bit(hl_value, operand));
+            let (l, h) = to8_bit(add16_bit(hl_value, operand));
 
             RegisterChange {
                 h: Some(h),

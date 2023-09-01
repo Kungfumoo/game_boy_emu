@@ -8,10 +8,12 @@ use crate::cpu::{
 };
 
 const PROGRAM_COUNTER: u16 = 0;
+const STACK_POINTER: u16 = 0x05;
 
 fn prepare_cpu() -> CPU {
     let mut cpu = CPU::new();
     cpu.registers.program_counter = PROGRAM_COUNTER;
+    cpu.registers.stack_pointer = STACK_POINTER;
 
     cpu
 }
@@ -153,11 +155,11 @@ fn test_0x08() { //LD [n16], SP
     let mut cpu = prepare_cpu();
 
     cpu.registers.stack_pointer = 0xC001;
-    cpu.execute_with_args(0x08, Some(vec![0xA1, 0xFF]));
+    cpu.execute_with_args(0x08, Some(vec![0xFF, 0xA1]));
 
     assert_eq!(3, cpu.registers.program_counter);
-    assert_eq!(0xC0, cpu.memory[0xA1FF]);
-    assert_eq!(0x01, cpu.memory[0xA1FF + 1]);
+    assert_eq!(0x01, cpu.memory[0xA1FF]);
+    assert_eq!(0xC0, cpu.memory[0xA1FF + 1]);
 }
 
 #[test]
@@ -643,7 +645,7 @@ fn test_0x20() { //JR NZ, e8
 fn test_0x21() { //LD HL, u16
     let mut cpu = prepare_cpu();
 
-    cpu.execute_with_args(0x21, Option::Some(vec![0xC0, 0x01])); //load HL with c001
+    cpu.execute_with_args(0x21, Option::Some(vec![0x01, 0xC0])); //load HL with c001
 
     assert_eq!(3, cpu.registers.program_counter);
     assert_eq!(cpu.registers.hl(), 0xC001);
@@ -654,7 +656,7 @@ fn test_0x22() { //LD (HL+), A
     let mut cpu = prepare_cpu();
 
     cpu.execute_with_args(0x3E, Option::Some(vec![100])); //load A with 100
-    cpu.execute_with_args(0x21, Option::Some(vec![0xC0, 0x01])); //load HL with c001
+    cpu.execute_with_args(0x21, Option::Some(vec![0x01, 0xC0])); //load HL with c001
     cpu.execute(0x22); //load mem at (HL) with A then increment HL
 
     assert_eq!(6, cpu.registers.program_counter);
@@ -667,7 +669,7 @@ fn test_0x22() { //LD (HL+), A
 fn test_0x23() { //INC HL
     let mut cpu = prepare_cpu();
 
-    cpu.execute_with_args(0x21, Option::Some(vec![0xA0, 0x01])); //load HL with A001
+    cpu.execute_with_args(0x21, Option::Some(vec![0x01, 0xA0])); //load HL with A001
     cpu.execute(0x23);
 
     assert_eq!(4, cpu.registers.program_counter);
@@ -898,7 +900,7 @@ fn test_0x30() { //JR NC, e8
 fn test_0x31() { //LD SP, u16
     let mut cpu = prepare_cpu();
 
-    cpu.execute_with_args(0x31, Option::Some(vec![0xC0, 0x01])); //load HL with c001
+    cpu.execute_with_args(0x31, Option::Some(vec![0x01, 0xC0])); //load HL with c001
 
     assert_eq!(3, cpu.registers.program_counter);
     assert_eq!(cpu.registers.stack_pointer, 0xC001);
@@ -909,7 +911,7 @@ fn test_0x32() { //LD (HL-), A
     let mut cpu = prepare_cpu();
 
     cpu.execute_with_args(0x3E, Option::Some(vec![100])); //load A with 100
-    cpu.execute_with_args(0x21, Option::Some(vec![0xC0, 0x01])); //load HL with c001
+    cpu.execute_with_args(0x21, Option::Some(vec![0x01, 0xC0])); //load HL with c001
     cpu.execute(0x32); //load mem at (HL) with A then decrement HL
 
     assert_eq!(6, cpu.registers.program_counter);
@@ -922,7 +924,7 @@ fn test_0x32() { //LD (HL-), A
 fn test_0x33() { //INC SP
     let mut cpu = prepare_cpu();
 
-    cpu.execute_with_args(0x31, Option::Some(vec![0xA0, 0x01])); //load SP with A001
+    cpu.execute_with_args(0x31, Option::Some(vec![0x01, 0xA0])); //load SP with A001
     cpu.execute(0x33);
 
     assert_eq!(4, cpu.registers.program_counter);
@@ -1843,12 +1845,12 @@ fn test_0xC2() { //JP NZ a16
     let mut cpu = prepare_cpu();
 
     cpu.flags.zero = true;
-    cpu.execute_with_args(0xC2, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xC2, Some(vec![0x01, 0xC0]));
 
     assert_eq!(3, cpu.registers.program_counter);
 
     cpu.flags.zero = false;
-    cpu.execute_with_args(0xC2, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xC2, Some(vec![0x01, 0xC0]));
 
     assert_eq!(0xC001, cpu.registers.program_counter);
 }
@@ -1858,7 +1860,7 @@ fn test_0xC2() { //JP NZ a16
 fn test_0xC3() { //JP a16
     let mut cpu = prepare_cpu();
 
-    cpu.execute_with_args(0xC3, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xC3, Some(vec![0x01, 0xC0]));
 
     assert_eq!(0xC001, cpu.registers.program_counter);
 }
@@ -1871,7 +1873,7 @@ fn test_0xC4() { //CALL NZ, a16
     cpu.flags.zero = true;
     cpu.registers.program_counter = 0xA034;
     cpu.registers.stack_pointer = 0x05;
-    cpu.execute_with_args(0xC4, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xC4, Some(vec![0x01, 0xC0]));
 
     assert_eq!(0xA037, cpu.registers.program_counter);
     assert_eq!(0x05, cpu.registers.stack_pointer);
@@ -1881,7 +1883,7 @@ fn test_0xC4() { //CALL NZ, a16
     cpu.flags.zero = false;
     cpu.registers.program_counter = 0xA034;
     cpu.registers.stack_pointer = 0x05;
-    cpu.execute_with_args(0xC4, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xC4, Some(vec![0x01, 0xC0]));
 
     assert_eq!(0xC001, cpu.registers.program_counter);
     assert_eq!(0x03, cpu.registers.stack_pointer);
@@ -1961,12 +1963,12 @@ fn test_0xCA() { //JP Z a16
     let mut cpu = prepare_cpu();
 
     cpu.flags.zero = false;
-    cpu.execute_with_args(0xCA, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xCA, Some(vec![0x01, 0xC0]));
 
     assert_eq!(3, cpu.registers.program_counter);
 
     cpu.flags.zero = true;
-    cpu.execute_with_args(0xCA, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xCA, Some(vec![0x01, 0xC0]));
 
     assert_eq!(0xC001, cpu.registers.program_counter);
 }
@@ -1979,7 +1981,7 @@ fn test_0xCC() { //CALL Z, a16
     cpu.flags.zero = false;
     cpu.registers.program_counter = 0xA034;
     cpu.registers.stack_pointer = 0x05;
-    cpu.execute_with_args(0xCC, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xCC, Some(vec![0x01, 0xC0]));
 
     assert_eq!(0xA037, cpu.registers.program_counter);
     assert_eq!(0x05, cpu.registers.stack_pointer);
@@ -1989,7 +1991,7 @@ fn test_0xCC() { //CALL Z, a16
     cpu.flags.zero = true;
     cpu.registers.program_counter = 0xA034;
     cpu.registers.stack_pointer = 0x05;
-    cpu.execute_with_args(0xCC, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xCC, Some(vec![0x01, 0xC0]));
 
     assert_eq!(0xC001, cpu.registers.program_counter);
     assert_eq!(0x03, cpu.registers.stack_pointer);
@@ -2004,7 +2006,7 @@ fn test_0xCD() { //CALL a16
 
     cpu.registers.program_counter = 0xA034;
     cpu.registers.stack_pointer = 0x05;
-    cpu.execute_with_args(0xCD, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xCD, Some(vec![0x01, 0xC0]));
 
     assert_eq!(0xC001, cpu.registers.program_counter);
     assert_eq!(0x03, cpu.registers.stack_pointer);
@@ -2096,12 +2098,12 @@ fn test_0xD2() { //JP NC a16
     let mut cpu = prepare_cpu();
 
     cpu.flags.carry = true;
-    cpu.execute_with_args(0xD2, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xD2, Some(vec![0x01, 0xC0]));
 
     assert_eq!(3, cpu.registers.program_counter);
 
     cpu.flags.carry = false;
-    cpu.execute_with_args(0xD2, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xD2, Some(vec![0x01, 0xC0]));
 
     assert_eq!(0xC001, cpu.registers.program_counter);
 }
@@ -2114,7 +2116,7 @@ fn test_0xD4() { //CALL NC, a16
     cpu.flags.carry = true;
     cpu.registers.program_counter = 0xA034;
     cpu.registers.stack_pointer = 0x05;
-    cpu.execute_with_args(0xD4, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xD4, Some(vec![0x01, 0xC0]));
 
     assert_eq!(0xA037, cpu.registers.program_counter);
     assert_eq!(0x05, cpu.registers.stack_pointer);
@@ -2124,7 +2126,7 @@ fn test_0xD4() { //CALL NC, a16
     cpu.flags.carry = false;
     cpu.registers.program_counter = 0xA034;
     cpu.registers.stack_pointer = 0x05;
-    cpu.execute_with_args(0xD4, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xD4, Some(vec![0x01, 0xC0]));
 
     assert_eq!(0xC001, cpu.registers.program_counter);
     assert_eq!(0x03, cpu.registers.stack_pointer);
@@ -2205,12 +2207,12 @@ fn test_0xDA() { //JP C a16
     let mut cpu = prepare_cpu();
 
     cpu.flags.carry = false;
-    cpu.execute_with_args(0xDA, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xDA, Some(vec![0x01, 0xC0]));
 
     assert_eq!(3, cpu.registers.program_counter);
 
     cpu.flags.carry = true;
-    cpu.execute_with_args(0xDA, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xDA, Some(vec![0x01, 0xC0]));
 
     assert_eq!(0xC001, cpu.registers.program_counter);
 }
@@ -2223,7 +2225,7 @@ fn test_0xDC() { //CALL C, a16
     cpu.flags.carry = false;
     cpu.registers.program_counter = 0xA034;
     cpu.registers.stack_pointer = 0x05;
-    cpu.execute_with_args(0xDC, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xDC, Some(vec![0x01, 0xC0]));
 
     assert_eq!(0xA037, cpu.registers.program_counter);
     assert_eq!(0x05, cpu.registers.stack_pointer);
@@ -2233,7 +2235,7 @@ fn test_0xDC() { //CALL C, a16
     cpu.flags.carry = true;
     cpu.registers.program_counter = 0xA034;
     cpu.registers.stack_pointer = 0x05;
-    cpu.execute_with_args(0xDC, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xDC, Some(vec![0x01, 0xC0]));
 
     assert_eq!(0xC001, cpu.registers.program_counter);
     assert_eq!(0x03, cpu.registers.stack_pointer);
@@ -2366,7 +2368,7 @@ fn test_0xEA() { //LD [a16], A
     let mut cpu = prepare_cpu();
 
     cpu.registers.a = 0xAF;
-    cpu.execute_with_args(0xEA, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xEA, Some(vec![0x01, 0xC0]));
 
     assert_eq!(3, cpu.registers.program_counter);
     assert_eq!(0xAF, cpu.memory[0xC001]);
@@ -2409,8 +2411,8 @@ fn test_0xF1() { //POP AF
 
     assert_eq!(0x05, cpu.registers.stack_pointer);
     assert_eq!(0xC0A0, to16_bit(
-        cpu.registers.a,
-        cpu.flags.to_u8()
+        cpu.flags.to_u8(),
+        cpu.registers.a
     ));
     assert!(cpu.flags.zero);
     assert!(!cpu.flags.subtract);
@@ -2519,7 +2521,7 @@ fn test_0xFA() { //LD A, [a16]
     let mut cpu = prepare_cpu();
 
     cpu.memory[0xC001] = 0x69;
-    cpu.execute_with_args(0xFA, Some(vec![0xC0, 0x01]));
+    cpu.execute_with_args(0xFA, Some(vec![0x01, 0xC0]));
 
     assert_eq!(3, cpu.registers.program_counter);
     assert_eq!(0x69, cpu.registers.a);

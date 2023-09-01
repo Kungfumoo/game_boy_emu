@@ -108,15 +108,15 @@ impl Registers {
     }
 
     pub fn bc(&self) -> u16 {
-        to16_bit(self.b, self.c)
+        to16_bit(self.c, self.b)
     }
 
     pub fn de(&self) -> u16 {
-        to16_bit(self.d, self.e)
+        to16_bit(self.e, self.d)
     }
 
     pub fn hl(&self) -> u16 {
-        to16_bit(self.h, self.l)
+        to16_bit(self.l, self.h)
     }
 
     pub fn from_opcode_index(&self, opcode: u8) -> u8 {
@@ -135,18 +135,18 @@ impl Registers {
     }
 }
 
-pub fn to16_bit(left: u8, right: u8) -> u16 {
-    let l16: u16 = left.into();
-    let r16: u16 = right.into();
+pub fn to16_bit(lsb: u8, msb: u8) -> u16 {
+    let l16: u16 = msb.into();
+    let r16: u16 = lsb.into();
 
     (l16 << 8) | r16
 }
 
 pub fn to8_bit(value: u16) -> (u8, u8) {
-    let left: u8 = (value >> 8) as u8;
-    let right: u8 = (value & 0xFF) as u8;
+    let msb: u8 = (value >> 8) as u8;
+    let lsb: u8 = (value & 0xFF) as u8;
 
-    (left, right)
+    (lsb, msb)
 }
 
 #[cfg(test)]
@@ -235,21 +235,26 @@ mod tests {
     #[test]
     fn test_to16_bit() {
         assert_eq!(
-            to16_bit(0x01, 0x0A),
+            to16_bit(0x0A, 0x01),
             0x010A
         );
+
+        assert_eq!(
+            to16_bit(0x95, 0x00),
+            0x0095
+        )
     }
 
     #[test]
     fn test_to8_bit() {
-        let (left, right) = to8_bit(0x010A);
+        let (lsb, msb) = to8_bit(0x010A);
 
-        assert_eq!(0x01, left);
-        assert_eq!(0x0A, right);
+        assert_eq!(0x01, msb);
+        assert_eq!(0x0A, lsb);
 
-        let (left, right) = to8_bit(0xA034);
+        let (lsb, msb) = to8_bit(0xA034);
 
-        assert_eq!(0xA0, left);
-        assert_eq!(0x34, right);
+        assert_eq!(0xA0, msb);
+        assert_eq!(0x34, lsb);
     }
 }
