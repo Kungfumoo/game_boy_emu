@@ -3,6 +3,7 @@ use std::fs::File;
 use game_boy::GameBoy;
 
 pub mod cpu;
+pub mod ppu;
 pub mod game_boy;
 
 const BOOT_ROM_NAME: &str = "assets/dmg.bin";

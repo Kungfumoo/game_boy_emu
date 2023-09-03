@@ -8,10 +8,11 @@ use flags::Flags;
 use instructions::{StateChange, get_byte_length};
 use memory::Memory;
 
+pub mod memory;
+
 mod instructions;
 mod registers;
 mod flags;
-mod memory;
 mod util;
 
 #[cfg(test)]

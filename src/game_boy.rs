@@ -1,9 +1,13 @@
-use crate::cpu::CPU;
+use crate::{
+    cpu::CPU,
+    ppu::PPU
+};
 
 const CARTRIDGE_ROM: usize = 0x7FFF;
 
 pub struct GameBoy {
-    cpu: CPU
+    cpu: CPU,
+    display: PPU
 }
 
 impl GameBoy {
@@ -15,7 +19,8 @@ impl GameBoy {
         );
 
         GameBoy {
-            cpu: cpu
+            cpu: cpu,
+            display: PPU::init()
         }
     }
 
