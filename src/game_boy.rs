@@ -1,9 +1,13 @@
+use std::time::Duration;
+use std::thread;
+
 use crate::{
     cpu::CPU,
     ppu::PPU
 };
 
 const CARTRIDGE_ROM: usize = 0x7FFF;
+const CPU_SPEED_MHZ: f64 = 1e-6 * 2.0; //TODO: currently set to 2hz for testing should be 4.194304Mhz
 
 pub struct GameBoy {
     cpu: CPU,
@@ -25,7 +29,22 @@ impl GameBoy {
     }
 
     pub fn run(&mut self) {
-        self.cpu.run();
+        loop {
+            let t_states = self.cpu.step();
+
+            self.delay(t_states);
+        }
+    }
+
+    fn delay(&self, t_states: u8) {
+        const SPEED_HZ: f64 = CPU_SPEED_MHZ * 1e+6;
+        const T_TO_M_CYCLE: u8 = 4; //Timing states divisible by 4, 4 t_states = 1 machine cycle
+        const M_CYCLE_TO_SECOND: f64 = 1.0 / SPEED_HZ; //1 hz = 1 machine cycle per second
+
+        let m_cycles = (t_states / T_TO_M_CYCLE) as f64;
+        let delay = Duration::from_secs_f64(m_cycles * M_CYCLE_TO_SECOND);
+
+        thread::sleep(delay);
     }
 
     pub fn status(&self) {

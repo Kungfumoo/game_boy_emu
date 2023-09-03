@@ -1,6 +1,4 @@
 use std::ops::Range;
-use std::time::Duration;
-use std::thread;
 
 //Sharp SM83 CPU
 use registers::Registers;
@@ -18,8 +16,6 @@ mod util;
 #[cfg(test)]
 #[path = "./cpu_test.rs"]
 mod cpu_test;
-
-const CPU_SPEED_MHZ: f64 = 1e-6 * 2.0; //TODO: currently set to 2hz for testing should be 4.194304Mhz
 
 #[derive(Clone, Copy)]
 pub enum ImeStatus {
@@ -136,50 +132,39 @@ impl CPU {
         }
     }
 
-    pub fn run(&mut self) {
-        loop {
-            let pc = self.registers.program_counter;
-            let op_code = self.memory[pc as usize];
+    //perform a cpu cycle and return the t-states
+    pub fn step(&mut self) -> u8 {
+        let pc = self.registers.program_counter;
+        let op_code = self.memory[pc as usize];
 
-            if op_code == 0x00 {
-                return;
-            }
-
-            //TODO: temp
-            println!("Executing {:#02x}", op_code);
-
-            if op_code == 0xCB {
-                println!("PREFIX {:#02x}", self.memory[(pc + 1) as usize]);
-            }
-
-            if op_code == 0x67 { //TEMP: line 118 dmg.asm
-                println!("hit");
-            }
-
-            if op_code == 0x0D { //TEMP: line 141 dmg.asm after breaking at 0x67, it's never reaching here.
-                println!("hit");
-            }
-
-            let change = instructions::execute(
-                self,
-                op_code
-            );
-
-            self.registers.program_counter = pc.wrapping_add(get_byte_length(op_code) as u16);
-            self.update(&change);
-            //self.delay(change.t_states);
+        if op_code == 0x00 {
+            return 0;
         }
-    }
 
-    fn delay(&self, t_states: u8) {
-        const SPEED_HZ: f64 = CPU_SPEED_MHZ * 1e+6;
-        const T_TO_M_CYCLE: u8 = 4; //Timing states divisible by 4, 4 t_states = 1 machine cycle
-        const M_CYCLE_TO_SECOND: f64 = 1.0 / SPEED_HZ; //1 hz = 1 machine cycle per second
+        //TODO: temp
+        println!("Executing {:#02x}", op_code);
 
-        let m_cycles = (t_states / T_TO_M_CYCLE) as f64;
-        let delay = Duration::from_secs_f64(m_cycles * M_CYCLE_TO_SECOND);
+        /*if op_code == 0xCB {
+            println!("PREFIX {:#02x}", self.memory[(pc + 1) as usize]);
+        }
 
-        thread::sleep(delay);
+        if op_code == 0x67 { //TEMP: line 118 dmg.asm
+            println!("hit");
+        }
+
+        if op_code == 0x0D { //TEMP: line 141 dmg.asm after breaking at 0x67, it's never reaching here.
+            println!("hit");
+        }*/
+
+        let change = instructions::execute(
+            self,
+            op_code
+        );
+
+        self.registers.program_counter = pc.wrapping_add(get_byte_length(op_code) as u16);
+        self.update(&change);
+
+        change.t_states
     }
 
     fn update(&mut self, change: &StateChange) {
