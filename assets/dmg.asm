@@ -135,8 +135,8 @@ ELSE
 .delayFrames
     0x0E: ld c, 12
 .waitVBlank
-    0xF0: ldh a, [rLY]
-    0xFE: cp SCRN_Y
+    0xF0: ldh a, [rLY] ; Load LCD Y coordinate into A register.
+    0xFE: cp SCRN_Y ; Compare Y coordinate with constant scrn_Y
     0x20: jr nz, .waitVBlank ; IT IS LOOPING INDEFINATELY HERE!!!
     0x0D: dec c
     jr nz, .waitVBlank
