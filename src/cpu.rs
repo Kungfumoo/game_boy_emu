@@ -1,4 +1,6 @@
 use std::ops::Range;
+use std::time::{Duration, Instant};
+use std::thread;
 
 //Sharp SM83 CPU
 use registers::Registers;
@@ -15,6 +17,8 @@ mod util;
 #[cfg(test)]
 #[path = "./cpu_test.rs"]
 mod cpu_test;
+
+const CPU_SPEED_MHZ: f64 = 1e-6 * 2.0; //TODO: currently set to 2hz for testing should be 4.194304Mhz
 
 #[derive(Clone, Copy)]
 pub enum ImeStatus {
@@ -141,6 +145,10 @@ impl CPU {
                 return;
             }
 
+            //TODO: temp
+            println!("Executing {:#02x}", op_code);
+
+            let now = Instant::now();
             let change = instructions::execute(
                 self,
                 op_code
@@ -148,12 +156,28 @@ impl CPU {
 
             self.registers.program_counter = pc.wrapping_add(get_byte_length(op_code) as u16);
             self.update(&change);
+            self.delay(change.t_states, now.elapsed());
         }
     }
 
-    fn update(&mut self, change: &StateChange) {
-        //TODO: t states - according to this article: https://forums.nesdev.org/viewtopic.php?t=14014 we may not need to care
+    //elapsed used to account for emulator processing time
+    fn delay(&self, t_states: u8, elapsed: Duration) {
+        const SPEED_HZ: f64 = CPU_SPEED_MHZ * 1e+6;
+        const T_TO_M_CYCLE: u8 = 4; //Timing states divisible by 4, 4 t_states = 1 machine cycle
+        const M_CYCLE_TO_SECOND: f64 = 1.0 / SPEED_HZ; //1 hz = 1 machine cycle per second
 
+        let m_cycles = (t_states / T_TO_M_CYCLE) as f64;
+        let delay = Duration::from_secs_f64(m_cycles * M_CYCLE_TO_SECOND);
+
+        if elapsed >= delay {
+            thread::sleep(delay);
+            return;
+        }
+
+        thread::sleep(delay - elapsed);
+    }
+
+    fn update(&mut self, change: &StateChange) {
         if let ImeStatus::SCHEDULED = self.ime {
             self.ime = ImeStatus::SET;
         }
