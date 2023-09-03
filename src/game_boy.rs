@@ -3,7 +3,7 @@ use std::thread;
 
 use crate::{
     cpu::CPU,
-    ppu::PPU
+    ppu::{PPU, LCD_REGISTERS}
 };
 
 const CARTRIDGE_ROM: usize = 0x7FFF;
@@ -11,7 +11,7 @@ const CPU_SPEED_MHZ: f64 = 1e-6 * 2.0; //TODO: currently set to 2hz for testing 
 
 pub struct GameBoy {
     cpu: CPU,
-    display: PPU
+    ppu: PPU
 }
 
 impl GameBoy {
@@ -24,13 +24,17 @@ impl GameBoy {
 
         GameBoy {
             cpu: cpu,
-            display: PPU::init()
+            ppu: PPU::init()
         }
     }
 
     pub fn run(&mut self) {
         loop {
             let t_states = self.cpu.step();
+            self.cpu.memory_map(
+                LCD_REGISTERS,
+                self.ppu.step()
+            );
 
             self.delay(t_states);
         }
