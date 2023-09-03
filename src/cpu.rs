@@ -147,6 +147,18 @@ impl CPU {
             //TODO: temp
             println!("Executing {:#02x}", op_code);
 
+            if op_code == 0xCB {
+                println!("PREFIX {:#02x}", self.memory[(pc + 1) as usize]);
+            }
+
+            if op_code == 0x67 { //TEMP: line 118 dmg.asm
+                println!("hit");
+            }
+
+            if op_code == 0x0D { //TEMP: line 141 dmg.asm after breaking at 0x67, it's never reaching here.
+                println!("hit");
+            }
+
             let change = instructions::execute(
                 self,
                 op_code
@@ -154,7 +166,7 @@ impl CPU {
 
             self.registers.program_counter = pc.wrapping_add(get_byte_length(op_code) as u16);
             self.update(&change);
-            self.delay(change.t_states);
+            //self.delay(change.t_states);
         }
     }
 
