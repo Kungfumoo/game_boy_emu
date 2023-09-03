@@ -135,7 +135,6 @@ impl CPU {
         }
     }
 
-    //TODO: speed?
     pub fn run(&mut self) {
         loop {
             let pc = self.registers.program_counter;
