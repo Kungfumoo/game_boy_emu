@@ -1,5 +1,5 @@
 use std::ops::Range;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use std::thread;
 
 //Sharp SM83 CPU
@@ -148,7 +148,6 @@ impl CPU {
             //TODO: temp
             println!("Executing {:#02x}", op_code);
 
-            let now = Instant::now();
             let change = instructions::execute(
                 self,
                 op_code
@@ -156,12 +155,11 @@ impl CPU {
 
             self.registers.program_counter = pc.wrapping_add(get_byte_length(op_code) as u16);
             self.update(&change);
-            self.delay(change.t_states, now.elapsed());
+            self.delay(change.t_states);
         }
     }
 
-    //elapsed used to account for emulator processing time
-    fn delay(&self, t_states: u8, elapsed: Duration) {
+    fn delay(&self, t_states: u8) {
         const SPEED_HZ: f64 = CPU_SPEED_MHZ * 1e+6;
         const T_TO_M_CYCLE: u8 = 4; //Timing states divisible by 4, 4 t_states = 1 machine cycle
         const M_CYCLE_TO_SECOND: f64 = 1.0 / SPEED_HZ; //1 hz = 1 machine cycle per second
@@ -169,12 +167,7 @@ impl CPU {
         let m_cycles = (t_states / T_TO_M_CYCLE) as f64;
         let delay = Duration::from_secs_f64(m_cycles * M_CYCLE_TO_SECOND);
 
-        if elapsed >= delay {
-            thread::sleep(delay);
-            return;
-        }
-
-        thread::sleep(delay - elapsed);
+        thread::sleep(delay);
     }
 
     fn update(&mut self, change: &StateChange) {
