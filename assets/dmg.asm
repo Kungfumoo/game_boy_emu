@@ -137,10 +137,10 @@ ELSE
 .waitVBlank
     0xF0: ldh a, [rLY] ; Load LCD Y ($FF44) coordinate into A register.
     0xFE: cp SCRN_Y ; Compare Y coordinate with constant scrn_Y
-    0x20: jr nz, .waitVBlank ; IT IS LOOPING INDEFINATELY HERE!!!
+    0x20: jr nz, .waitVBlank
     0x0D: dec c
-    jr nz, .waitVBlank
-    dec e
+    0x20: jr nz, .waitVBlank
+    0x1D: dec e
     jr nz, .delayFrames
 ENDC
 
@@ -295,7 +295,7 @@ CheckLogo:
     jr nz, .computeChecksum
     add a, [hl]
 .checksumFailure
-    jr nz, .checksumFailure
+    jr nz, .checksumFailure ; TODO: IT IS STUCK HERE CHECKSUM FAILURE
 
     IF DEF(mgb)
     ld a, $FF

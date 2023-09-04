@@ -140,20 +140,21 @@ impl CPU {
             return 0;
         }
 
-        //TODO: temp
-        println!("Executing {:#02x}", op_code);
-
-        /*if op_code == 0xCB {
-            println!("PREFIX {:#02x}", self.memory[(pc + 1) as usize]);
+        if op_code == 0xCB { //TEMP
+            println!("Executing PREFIX {:#02x}", self.memory[(pc + 1) as usize]);
+        } else {
+            println!("Executing {:#02x}", op_code);
         }
 
-        if op_code == 0x67 { //TEMP: line 118 dmg.asm
+        /*
+        if op_code == 0xBE { //TEMP: line 281 dmg.asm
             println!("hit");
         }
 
-        if op_code == 0x0D { //TEMP: line 141 dmg.asm after breaking at 0x67, it's never reaching here.
+        if op_code == 0x86 { //TEMP: line 292 dmg.asm
             println!("hit");
-        }*/
+        }
+        */
 
         let change = instructions::execute(
             self,

@@ -35,3 +35,17 @@ impl PPU {
         ]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_step() {
+        let mut ppu = PPU::init();
+
+        let result = ppu.step();
+
+        assert_eq!(1, result[4]);
+    }
+}
