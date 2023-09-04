@@ -33,7 +33,7 @@ impl GameBoy {
             let t_states = self.cpu.step();
             self.cpu.memory_map(
                 LCD_REGISTERS,
-                self.ppu.step()
+                self.ppu.step() //TODO: screen timing
             );
 
             self.delay(t_states);
