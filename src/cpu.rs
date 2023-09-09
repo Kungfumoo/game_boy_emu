@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::{ops::Range, time::Duration};
 
 //Sharp SM83 CPU
 use registers::{Registers, PC_START};
@@ -16,7 +16,8 @@ mod util;
 #[path = "./cpu_test.rs"]
 mod cpu_test;
 
-pub const T_TO_M_CYCLE: u8 = 4; //Timing states divisible by 4, 4 t_states = 1 machine cycle
+const CPU_SPEED_MHZ: f64 = 1e-6 * 2.0; //TODO: currently set to 2hz for testing should be 4.194304Mhz
+const T_TO_M_CYCLE: u8 = 4; //Timing states divisible by 4, 4 t_states = 1 machine cycle
 
 #[derive(Clone, Copy)]
 pub enum ImeStatus {
@@ -133,8 +134,8 @@ impl CPU {
         }
     }
 
-    //perform a fetch-execute cycle and return the t-states
-    pub fn step(&mut self) -> u8 {
+    //perform a fetch-execute cycle and return the processing time based on t_states
+    pub fn step(&mut self) -> Duration {
         let pc = self.registers.program_counter;
         let op_code = self.memory[pc as usize];
 
@@ -163,10 +164,10 @@ impl CPU {
         self.update(&change);
 
         if pc == PC_START { //emulate initial fetch that is not overlapped (2 cycles min)
-            return change.t_states + T_TO_M_CYCLE;
+            return delay(change.t_states + T_TO_M_CYCLE);
         }
 
-        change.t_states
+        delay(change.t_states)
     }
 
     fn update(&mut self, change: &StateChange) {
@@ -182,4 +183,12 @@ impl CPU {
         self.flags.update(&change.flags);
         self.memory.update(&change.memory);
     }
+}
+
+fn delay(t_states: u8) -> Duration {
+    const SPEED_HZ: f64 = CPU_SPEED_MHZ * 1e+6;
+    const M_CYCLE_TO_SECOND: f64 = 1.0 / SPEED_HZ; //1 hz = 1 machine cycle per second
+
+    let m_cycles = (t_states / T_TO_M_CYCLE) as f64;
+    Duration::from_secs_f64(m_cycles * M_CYCLE_TO_SECOND)
 }

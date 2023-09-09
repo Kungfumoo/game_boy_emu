@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::{ops::Range, time::Duration};
 
 pub const LCD_REGISTERS: Range<usize> = 0xFF40..0xFF4B;
 const LCD_Y_MAX: u8 = 153;
@@ -15,14 +15,14 @@ impl PPU {
     }
 
     //PPU cycle and return values of registers
-    pub fn step(&mut self) -> Vec<u8> {
+    pub fn step(&mut self) -> (Vec<u8>, Duration) {
         self.ly += 1;
 
         if self.ly > LCD_Y_MAX {
             self.ly = 0;
         }
 
-        self.sync_to_memory()
+        (self.sync_to_memory(), delay())
     }
 
     fn sync_to_memory(&self) -> Vec<u8> {
@@ -36,6 +36,11 @@ impl PPU {
     }
 }
 
+fn delay() -> Duration {
+    //TODO: basic implementation until I have sorted the display: https://gbdev.io/pandocs/pixel_fifo.html#pixel-fifo
+    Duration::from_micros(16740)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -44,7 +49,7 @@ mod tests {
     fn test_step() {
         let mut ppu = PPU::init();
 
-        let result = ppu.step();
+        let (result, _) = ppu.step(); //TODO: test duration
 
         assert_eq!(1, result[4]);
     }

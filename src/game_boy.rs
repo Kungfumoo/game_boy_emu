@@ -2,12 +2,11 @@ use std::time::{Duration, Instant};
 use std::thread;
 
 use crate::{
-    cpu::{CPU, T_TO_M_CYCLE},
+    cpu::CPU,
     ppu::{PPU, LCD_REGISTERS}
 };
 
 const CARTRIDGE_ROM: usize = 0x7FFF;
-const CPU_SPEED_MHZ: f64 = 1e-6 * 2.0; //TODO: currently set to 2hz for testing should be 4.194304Mhz
 
 struct TimeState {
     prev: Instant,
@@ -64,7 +63,7 @@ impl GameBoy {
 
         TimeState {
             prev: Instant::now(),
-            delay: cpu_delay(self.cpu.step())
+            delay: self.cpu.step()
         }
     }
 
@@ -73,29 +72,18 @@ impl GameBoy {
             return state;
         }
 
+        let (values, delay) = self.ppu.step();
+
         self.cpu.memory_map(
             LCD_REGISTERS,
-            self.ppu.step()
+            values
         );
 
         TimeState {
             prev: Instant::now(),
-            delay: ppu_delay()
+            delay: delay
         }
     }
-}
-
-fn cpu_delay(t_states: u8) -> Duration {
-    const SPEED_HZ: f64 = CPU_SPEED_MHZ * 1e+6;
-    const M_CYCLE_TO_SECOND: f64 = 1.0 / SPEED_HZ; //1 hz = 1 machine cycle per second
-
-    let m_cycles = (t_states / T_TO_M_CYCLE) as f64;
-    Duration::from_secs_f64(m_cycles * M_CYCLE_TO_SECOND)
-}
-
-fn ppu_delay() -> Duration {
-    //TODO: basic implementation until I have sorted the display: https://gbdev.io/pandocs/pixel_fifo.html#pixel-fifo
-    Duration::from_micros(16740)
 }
 
 fn has_delayed(state: &TimeState) -> bool {
