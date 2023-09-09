@@ -138,10 +138,6 @@ impl CPU {
         let pc = self.registers.program_counter;
         let op_code = self.memory[pc as usize];
 
-        if op_code == 0x00 { //TODO: Handle NOP in a different way?
-            return 0;
-        }
-
         if op_code == 0xCB { //TEMP
             println!("Executing PREFIX {:#02x}", self.memory[(pc + 1) as usize]);
         } else {
