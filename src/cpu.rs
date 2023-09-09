@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 //Sharp SM83 CPU
-use registers::Registers;
+use registers::{Registers, PC_START};
 use flags::Flags;
 use instructions::{StateChange, get_byte_length};
 use memory::Memory;
@@ -133,7 +133,7 @@ impl CPU {
         }
     }
 
-    //perform a cpu cycle and return the t-states
+    //perform a fetch-execute cycle and return the t-states
     pub fn step(&mut self) -> u8 {
         let pc = self.registers.program_counter;
         let op_code = self.memory[pc as usize];
@@ -162,7 +162,7 @@ impl CPU {
         self.registers.program_counter = pc.wrapping_add(get_byte_length(op_code) as u16);
         self.update(&change);
 
-        if pc == 0x00 { //emulate initial fetch that is not overlapped
+        if pc == PC_START { //emulate initial fetch that is not overlapped (2 cycles min)
             return change.t_states + T_TO_M_CYCLE;
         }
 

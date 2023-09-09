@@ -1,3 +1,5 @@
+pub const PC_START: u16 = 0x0000; //https://gbdev.io/pandocs/Power_Up_Sequence.html ~ Boot ROM at 0000 then cartrige ROM at 0100
+
 pub struct RegisterChange {
     pub pc: Option<u16>,
     pub sp: Option<u16>,
@@ -57,8 +59,8 @@ pub struct Registers {
 impl Registers {
     pub fn new() -> Registers {
         Registers {
-            program_counter: 0x0000, //https://gbdev.io/pandocs/Power_Up_Sequence.html ~ Boot ROM at 0000 then cartrige ROM at 0100
-            stack_pointer: 0x05, //TODO: may not be correct
+            program_counter: PC_START,
+            stack_pointer: 0x05, //TODO: may not be correct ~ beleive it is set up by the boot rom.
             a: 0x00,
             b: 0x00,
             c: 0x00,
