@@ -16,6 +16,8 @@ mod util;
 #[path = "./cpu_test.rs"]
 mod cpu_test;
 
+pub const T_TO_M_CYCLE: u8 = 4; //Timing states divisible by 4, 4 t_states = 1 machine cycle
+
 #[derive(Clone, Copy)]
 pub enum ImeStatus {
     SET,
@@ -136,7 +138,7 @@ impl CPU {
         let pc = self.registers.program_counter;
         let op_code = self.memory[pc as usize];
 
-        if op_code == 0x00 {
+        if op_code == 0x00 { //TODO: Handle NOP in a different way?
             return 0;
         }
 
@@ -163,6 +165,10 @@ impl CPU {
 
         self.registers.program_counter = pc.wrapping_add(get_byte_length(op_code) as u16);
         self.update(&change);
+
+        if pc == 0x00 { //emulate initial fetch that is not overlapped
+            return change.t_states + T_TO_M_CYCLE;
+        }
 
         change.t_states
     }
