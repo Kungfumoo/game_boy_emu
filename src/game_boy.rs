@@ -72,7 +72,9 @@ impl GameBoy {
             return state;
         }
 
-        let (values, delay) = self.ppu.step();
+        let (values, delay) = self.ppu.step(
+            &self.cpu.memory_slice(LCD_REGISTERS)
+        );
 
         self.cpu.memory_map(
             LCD_REGISTERS,

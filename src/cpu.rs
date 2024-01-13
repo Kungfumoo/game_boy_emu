@@ -16,7 +16,7 @@ mod util;
 #[path = "./cpu_test.rs"]
 mod cpu_test;
 
-const CPU_SPEED_MHZ: f64 = 1e-6 * 2.0; //TODO: currently set to 2hz for testing should be 4.194304Mhz
+const CPU_SPEED_MHZ: f64 = 4.194304; //2hz for testing = 1e-6 * 2.0;
 const T_TO_M_CYCLE: u8 = 4; //Timing states divisible by 4, 4 t_states = 1 machine cycle
 
 #[derive(Clone, Copy)]
@@ -134,16 +134,28 @@ impl CPU {
         }
     }
 
+    //return a copy of a slice of memory
+    pub fn memory_slice(&self, mem_range: Range<usize>) -> Vec<u8> {
+        let mut data: Vec<u8> = vec![];
+
+        for addr in mem_range {
+            data.push(self.memory[addr]);
+        }
+
+        data
+    }
+
     //perform a fetch-execute cycle and return the processing time based on t_states
     pub fn step(&mut self) -> Duration {
         let pc = self.registers.program_counter;
         let op_code = self.memory[pc as usize];
 
+        /*
         if op_code == 0xCB { //TEMP
             println!("Executing PREFIX {:#02x}", self.memory[(pc + 1) as usize]);
         } else {
             println!("Executing {:#02x}", op_code);
-        }
+        }*/
 
         /*
         if op_code == 0xBE { //TEMP: line 281 dmg.asm

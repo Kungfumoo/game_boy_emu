@@ -6,20 +6,24 @@ use beryllium::{
 };
 use pixel_formats::r8g8b8a8_Srgb;
 
+use self::registers::Registers;
+
+mod registers;
+
 pub const LCD_REGISTERS: Range<usize> = 0xFF40..0xFF4B;
 
 const LCD_Y_MAX: u8 = 153;
-const PIXEL_WIDTH: i32 = 160;
-const PIXEL_HEIGHT: i32 = 144;
+
+const PIXEL_WIDTH: i32 = 256;
+const PIXEL_HEIGHT: i32 = 256;
+const VIEWPORT_PIXEL_WIDTH: i32 = 160;
+const VIEWPORT_PIXEL_HEIGHT: i32 = 144;
 
 pub struct PPU {
     //SDL
     sdl: Sdl,
     window: RendererWindow,
-    texture_buffer: Texture,
-
-    //GameBoy
-    ly: u8 //LCD Y Coordinate (READ-ONLY)
+    texture_buffer: Texture
 }
 
 impl PPU {
@@ -27,8 +31,8 @@ impl PPU {
         let sdl = Sdl::init(InitFlags::EVERYTHING);
         let win = sdl.create_renderer_window(CreateWinArgs {
             title: "Game Boy Emulator",
-            width: PIXEL_WIDTH,
-            height: PIXEL_HEIGHT,
+            width: VIEWPORT_PIXEL_WIDTH,
+            height: VIEWPORT_PIXEL_HEIGHT,
             ..Default::default()
         }, RendererFlags::ACCELERATED_VSYNC);
 
@@ -54,22 +58,22 @@ impl PPU {
         PPU {
             sdl,
             window: win,
-            texture_buffer: tex.unwrap(),
-            ly: 0
+            texture_buffer: tex.unwrap()
         }
     }
 
     //PPU cycle and return values of registers
-    pub fn step(&mut self) -> (Vec<u8>, Duration) {
-        self.ly += 1;
+    pub fn step(&mut self, registers: &Vec<u8>) -> (Vec<u8>, Duration) {
+        let mut reg = Registers::from_vec(registers);
+        reg.ly += 1;
 
-        if self.ly > LCD_Y_MAX {
-            self.ly = 0;
+        if reg.ly > LCD_Y_MAX {
+            reg.ly = 0;
         }
 
         self.refresh_window();
 
-        (self.sync_to_memory(), delay())
+        (reg.to_vec(), delay())
     }
 
     fn refresh_window(&mut self) {
@@ -92,16 +96,6 @@ impl PPU {
         self.window.copy(&self.texture_buffer, [0, 0, 8, 8], [200, 300, 8, 8]).unwrap();
 
         self.window.present();
-    }
-
-    fn sync_to_memory(&self) -> Vec<u8> {
-        vec![
-            0x00, //0xFF40
-            0x00, //0xFF41
-            0x00, //0xFF42
-            0x00, //0xFF43
-            self.ly, //0xFF44
-        ]
     }
 }
 
