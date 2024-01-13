@@ -1,4 +1,4 @@
-use std::{ops::Range, time::Duration};
+use std::time::Duration;
 
 //Sharp SM83 CPU
 use registers::{Registers, PC_START};
@@ -27,7 +27,7 @@ pub enum ImeStatus {
 }
 
 pub struct CPU {
-    memory: Memory,
+    pub memory: Memory,
     registers: Registers,
     flags: Flags,
     ime: ImeStatus, //interupt master enable flag - https://gbdev.io/pandocs/Interrupts.html
@@ -117,32 +117,6 @@ impl CPU {
 
         self.registers.program_counter = pc.wrapping_add(get_byte_length(op_code) as u16);
         self.update(&change)
-    }
-
-    //map values by bulk to memory, mem_range specifies where in memory
-    pub fn memory_map(&mut self, mem_range: Range<usize>, values: Vec<u8>) {
-        let mut idx = 0;
-        let len = values.len();
-
-        for addr in mem_range {
-            self.memory[addr] = values[idx];
-            idx += 1;
-
-            if idx >= len {
-                return;
-            }
-        }
-    }
-
-    //return a copy of a slice of memory
-    pub fn memory_slice(&self, mem_range: Range<usize>) -> Vec<u8> {
-        let mut data: Vec<u8> = vec![];
-
-        for addr in mem_range {
-            data.push(self.memory[addr]);
-        }
-
-        data
     }
 
     //perform a fetch-execute cycle and return the processing time based on t_states

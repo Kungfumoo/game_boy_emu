@@ -30,7 +30,7 @@ pub struct GameBoy {
 impl GameBoy {
     pub fn init(rom: Vec<u8>) -> GameBoy {
         let mut cpu = CPU::new();
-        cpu.memory_map(
+        cpu.memory.memory_map(
             0x0000..CARTRIDGE_ROM ,
             rom
         );
@@ -72,11 +72,12 @@ impl GameBoy {
             return state;
         }
 
+        let memory = &mut self.cpu.memory;
         let (values, delay) = self.ppu.step(
-            &self.cpu.memory_slice(LCD_REGISTERS)
+            &memory.get_slice(LCD_REGISTERS).to_vec()
         );
 
-        self.cpu.memory_map(
+        memory.memory_map(
             LCD_REGISTERS,
             values
         );

@@ -1,4 +1,4 @@
-use std::ops::{Index, IndexMut};
+use std::ops::{Index, IndexMut, Range};
 
 const MEMORY_SIZE: usize = 0xFFFF;
 
@@ -47,6 +47,25 @@ impl Memory {
     pub fn update(&mut self, change: &MemoryChange) {
         for mem_change in change.changes.iter() {
             self[mem_change.key as usize] = mem_change.value;
+        }
+    }
+
+    pub fn get_slice(&self, range: Range<usize>) -> &[u8] {
+        &self.memory[range]
+    }
+
+    //map values by bulk to memory, mem_range specifies where in memory
+    pub fn memory_map(&mut self, mem_range: Range<usize>, values: Vec<u8>) {
+        let mut idx = 0;
+        let len = values.len();
+
+        for addr in mem_range {
+            self.memory[addr] = values[idx];
+            idx += 1;
+
+            if idx >= len {
+                return;
+            }
         }
     }
 }

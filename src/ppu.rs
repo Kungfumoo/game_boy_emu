@@ -11,6 +11,7 @@ use self::registers::Registers;
 mod registers;
 
 pub const LCD_REGISTERS: Range<usize> = 0xFF40..0xFF4B;
+pub const VRAM: Range<usize> = 0x8000..0x97FF;
 
 const LCD_Y_MAX: u8 = 153;
 
