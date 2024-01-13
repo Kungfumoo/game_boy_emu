@@ -36,7 +36,7 @@ impl GameBoy {
         );
 
         GameBoy {
-            cpu: cpu,
+            cpu,
             ppu: PPU::init()
         }
     }
@@ -74,7 +74,7 @@ impl GameBoy {
 
         let memory = &mut self.cpu.memory;
         let (values, delay) = self.ppu.step(
-            &memory.get_slice(LCD_REGISTERS).to_vec()
+            &memory.get_slice(LCD_REGISTERS)
         );
 
         memory.memory_map(
