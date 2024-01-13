@@ -50,9 +50,8 @@ impl Memory {
         }
     }
 
-    //gets a copy of a range of memory as vector
-    pub fn get_slice(&self, range: Range<usize>) -> Vec<u8> {
-        self.memory[range].to_vec()
+    pub fn get_slice(&self, range: Range<usize>) -> &[u8] {
+        &self.memory[range]
     }
 
     //map values by bulk to memory, mem_range specifies where in memory
