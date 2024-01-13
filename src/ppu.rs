@@ -14,8 +14,8 @@ pub const LCD_REGISTERS: Range<usize> = 0xFF40..0xFF4B;
 
 const LCD_Y_MAX: u8 = 153;
 
-const PIXEL_WIDTH: i32 = 256;
-const PIXEL_HEIGHT: i32 = 256;
+//const PIXEL_WIDTH: i32 = 256;
+//const PIXEL_HEIGHT: i32 = 256;
 const VIEWPORT_PIXEL_WIDTH: i32 = 160;
 const VIEWPORT_PIXEL_HEIGHT: i32 = 144;
 
@@ -63,26 +63,28 @@ impl PPU {
     }
 
     //PPU cycle and return values of registers
-    pub fn step(&mut self, registers: &Vec<u8>) -> (Vec<u8>, Duration) {
-        let mut reg = Registers::from_vec(registers);
-        reg.ly += 1;
+    pub fn step(&mut self, regvec: &Vec<u8>) -> (Vec<u8>, Duration) {
+        let mut registers = Registers::from_vec(regvec);
+        registers.ly += 1;
 
-        if reg.ly > LCD_Y_MAX {
-            reg.ly = 0;
+        if registers.ly > LCD_Y_MAX {
+            registers.ly = 0;
         }
 
-        self.refresh_window();
+        self.refresh_window(&registers);
 
-        (reg.to_vec(), delay())
+        (registers.to_vec(), delay())
     }
 
-    fn refresh_window(&mut self) {
+    fn refresh_window(&mut self, registers: &Registers) {
         while let Some((event, _)) = self.sdl.poll_events() {
             match event {
                 Event::Quit => std::process::exit(0),
                 _ => (),
             }
         }
+
+        let lcdc = registers.get_lcd_control();
 
         //TODO: modify below
         self.window.set_draw_color(u8::MAX, u8::MAX, u8::MAX, u8::MAX).unwrap();
