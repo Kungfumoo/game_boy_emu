@@ -5,13 +5,13 @@ use beryllium::{
     events::Event
 };
 use pixel_formats::r8g8b8a8_Srgb;
-
-use self::registers::Registers;
+use self::{registers::Registers, vram::VRAM};
 
 mod registers;
+mod vram;
 
 pub const LCD_REGISTERS: Range<usize> = 0xFF40..0xFF4B;
-pub const VRAM: Range<usize> = 0x8000..0x97FF;
+pub const VRAM_RANGE: Range<usize> = 0x8000..0x97FF;
 
 const LCD_Y_MAX: u8 = 153;
 
@@ -19,6 +19,13 @@ const LCD_Y_MAX: u8 = 153;
 //const PIXEL_HEIGHT: i32 = 256;
 const VIEWPORT_PIXEL_WIDTH: i32 = 160;
 const VIEWPORT_PIXEL_HEIGHT: i32 = 144;
+
+enum Colours {
+    White,
+    DarkGrey,
+    LightGrey,
+    Black
+}
 
 pub struct PPU {
     //SDL
@@ -64,13 +71,28 @@ impl PPU {
     }
 
     //PPU cycle and return values of registers
-    pub fn step(&mut self, registers: &[u8]) -> (Vec<u8>, Duration) {
+    pub fn step(&mut self, registers: &[u8], vram: &[u8]) -> (Vec<u8>, Duration) {
         let mut registers = Registers::from_array(registers);
         registers.ly += 1;
 
         if registers.ly > LCD_Y_MAX {
             registers.ly = 0;
         }
+
+        let vram = VRAM { vram };
+        let tile = vram.get_tile(0, false);
+
+        //DEBUG
+        println!(
+            "t {}",
+            match tile.get_pixel_colour(7, 7) {
+                Colours::Black => "11",
+                Colours::DarkGrey => "10",
+                Colours::LightGrey => "01",
+                Colours::White => "00"
+            }
+        );
+        //DEBUG
 
         self.refresh_window(&registers);
 

@@ -3,7 +3,11 @@ use std::thread;
 
 use crate::{
     cpu::CPU,
-    ppu::{PPU, LCD_REGISTERS}
+    ppu::{
+        PPU,
+        LCD_REGISTERS,
+        VRAM_RANGE
+    }
 };
 
 const CARTRIDGE_ROM: usize = 0x7FFF;
@@ -74,7 +78,8 @@ impl GameBoy {
 
         let memory = &mut self.cpu.memory;
         let (values, delay) = self.ppu.step(
-            memory.get_slice(LCD_REGISTERS)
+            memory.get_slice(LCD_REGISTERS),
+            memory.get_slice(VRAM_RANGE)
         );
 
         memory.memory_map(

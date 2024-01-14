@@ -20,10 +20,10 @@ const CPU_SPEED_MHZ: f64 = 4.194304; //2hz for testing = 1e-6 * 2.0;
 const T_TO_M_CYCLE: u8 = 4; //Timing states divisible by 4, 4 t_states = 1 machine cycle
 
 #[derive(Clone, Copy)]
-pub enum ImeStatus {
-    SET,
-    UNSET,
-    SCHEDULED //When EI is called to enable IME, it is only enabled after the next instruction, schedule first then set ime after next execution
+enum ImeStatus {
+    Set,
+    Unset,
+    Scheduled //When EI is called to enable IME, it is only enabled after the next instruction, schedule first then set ime after next execution
 }
 
 pub struct CPU {
@@ -44,7 +44,7 @@ impl CPU {
                 half_carry: false,
                 carry: false
             },
-            ime: ImeStatus::UNSET
+            ime: ImeStatus::Unset
         }
     }
 
@@ -55,9 +55,9 @@ impl CPU {
         println!(
             "IME: {}",
             match self.ime {
-                ImeStatus::SET => "true",
-                ImeStatus::UNSET => "false",
-                ImeStatus::SCHEDULED => "scheduled"
+                ImeStatus::Set => "true",
+                ImeStatus::Unset => "false",
+                ImeStatus::Scheduled => "scheduled"
             }
         );
         println!(
@@ -157,8 +157,8 @@ impl CPU {
     }
 
     fn update(&mut self, change: &StateChange) {
-        if let ImeStatus::SCHEDULED = self.ime {
-            self.ime = ImeStatus::SET;
+        if let ImeStatus::Scheduled = self.ime {
+            self.ime = ImeStatus::Set;
         }
 
         if let Some(ime_set) = change.ime {

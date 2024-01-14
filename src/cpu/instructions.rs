@@ -1667,7 +1667,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
             }
         },
         0xD9 => StateChange { //RETI
-            ime: Some(ImeStatus::SET),
+            ime: Some(ImeStatus::Set),
             ..ret(cpu)
         },
         0xDA => { //JP C, a16
@@ -1857,7 +1857,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         },
         0xF3 => StateChange { //DI
             t_states: 4,
-            ime: Some(ImeStatus::UNSET),
+            ime: Some(ImeStatus::Unset),
             flags: FlagChange::default(),
             register: RegisterChange::default(),
             memory: MemoryChange::default()
@@ -1940,7 +1940,7 @@ pub fn execute(cpu: &CPU, op_code: u8) -> StateChange {
         },
         0xFB => StateChange { //EI
             t_states: 4,
-            ime: Some(ImeStatus::SCHEDULED),
+            ime: Some(ImeStatus::Scheduled),
             flags: FlagChange::default(),
             register: RegisterChange::default(),
             memory: MemoryChange::default()

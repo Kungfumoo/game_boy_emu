@@ -2185,7 +2185,7 @@ fn test_0xD9() { //RETI
 
     assert_eq!(0xC001, cpu.registers.program_counter);
     assert_eq!(0x05, cpu.registers.stack_pointer);
-    assert!(matches!(cpu.ime, ImeStatus::SET));
+    assert!(matches!(cpu.ime, ImeStatus::Set));
 }
 
 #[test]
@@ -2425,11 +2425,11 @@ fn test_0xF2() { //LDH A, [C]
 fn test_0xF3() { //DI
     let mut cpu = prepare_cpu();
 
-    cpu.ime = ImeStatus::SET;
+    cpu.ime = ImeStatus::Set;
     cpu.execute(0xF3);
 
     assert_eq!(1, cpu.registers.program_counter);
-    assert!(matches!(cpu.ime, ImeStatus::UNSET));
+    assert!(matches!(cpu.ime, ImeStatus::Unset));
 }
 
 #[test]
@@ -2522,10 +2522,10 @@ fn test_0xFB() { //EI
     cpu.execute(0xFB);
 
     assert_eq!(1, cpu.registers.program_counter);
-    assert!(matches!(cpu.ime, ImeStatus::SCHEDULED));
+    assert!(matches!(cpu.ime, ImeStatus::Scheduled));
 
     cpu.execute(0x04); //LD B, B - just to execute something else to set the ime
-    assert!(matches!(cpu.ime, ImeStatus::SET));
+    assert!(matches!(cpu.ime, ImeStatus::Set));
 }
 
 #[test]
