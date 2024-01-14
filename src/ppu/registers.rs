@@ -8,10 +8,10 @@ pub struct Registers {
 }
 
 impl Registers {
-    pub fn from_vec(vector: &Vec<u8>) -> Registers {
+    pub fn from_array(arr: &[u8]) -> Registers {
         Registers {
-            lcdc: vector[0],
-            ly: vector[4]
+            lcdc: arr[0],
+            ly: arr[4]
         }
     }
 

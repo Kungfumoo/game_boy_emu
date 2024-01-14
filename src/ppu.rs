@@ -64,8 +64,8 @@ impl PPU {
     }
 
     //PPU cycle and return values of registers
-    pub fn step(&mut self, regvec: &Vec<u8>) -> (Vec<u8>, Duration) {
-        let mut registers = Registers::from_vec(regvec);
+    pub fn step(&mut self, registers: &[u8]) -> (Vec<u8>, Duration) {
+        let mut registers = Registers::from_array(registers);
         registers.ly += 1;
 
         if registers.ly > LCD_Y_MAX {

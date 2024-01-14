@@ -32,19 +32,6 @@ fn get_register(cpu: &mut CPU, index: u8) -> Option<&mut u8> {
 }
 
 #[test]
-fn test_memory_map() {
-    let mut cpu = prepare_cpu();
-
-    cpu.memory_map(
-        0xC001..0xC005,
-        vec![0x10, 0x20, 0x30, 0x40]
-    );
-
-    assert_eq!(cpu.memory[0xC001], 0x10);
-    assert_eq!(cpu.memory[0xC004], 0x40);
-}
-
-#[test]
 fn test_0x00() { //nop
     let mut cpu = prepare_cpu();
 

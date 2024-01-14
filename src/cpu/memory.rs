@@ -96,4 +96,32 @@ mod tests {
         assert_eq!(memory[0x01], 0x0A);
         assert_eq!(memory[0x02], 0x00);
     }
+
+    #[test]
+    fn test_memory_map() {
+        let mut memory = Memory::new();
+
+        memory.memory_map(
+            0xC001..0xC005,
+            vec![0x10, 0x20, 0x30, 0x40]
+        );
+
+        assert_eq!(memory[0xC001], 0x10);
+        assert_eq!(memory[0xC004], 0x40);
+    }
+
+    #[test]
+    fn test_get_slice() {
+        let mut memory = Memory::new();
+
+        memory.memory_map(
+            0xC001..0xC005,
+            vec![0x10, 0x20, 0x30, 0x40]
+        );
+
+        let slice = memory.get_slice(0xC001..0xC005);
+
+        assert_eq!(slice[0], 0x10);
+        assert_eq!(slice[3], 0x40);
+    }
 }
