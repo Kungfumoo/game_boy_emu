@@ -7,18 +7,70 @@ pub struct VRAM<'a> { //<'a> is a lifetime parameter, telling borrow checker we'
 }
 
 impl VRAM<'_> {
-    pub fn get_tile(&self, tile_number: u16, signed_mode: bool) -> Tile {
-        //TODO: cover signed mode calculation, eg 0xFF is actually -127
+    pub fn get_tile(&self, tile_number: u8, signed_mode: bool) -> Tile {
         let start_addr = {
             if signed_mode {
-                0x1000
+                #[allow(overflowing_literals)]
+                let modifier = (tile_number as i8) as i16 * 16;
+
+                (0x1000 as u16).wrapping_add_signed(modifier)
             } else {
-                0x0
+                (tile_number as u16) * 16
             }
-        } + (tile_number * 16) as usize;
+        } as usize;
 
         Tile {
             data: &self.vram[start_addr..(start_addr + 16)]
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::ppu::Colours;
+    use super::*;
+
+    #[test]
+    pub fn test_get_tile_unsigned() {
+        let mut memory: [u8; 0xFFFF] = [0; 0xFFFF];
+
+        memory[0x00] = 0b10000000;
+        memory[0x01] = 0b10000000;
+        memory[0xFF0] = 0b10000000;
+        memory[0xFF1] = 0b10000000;
+
+        let vram = VRAM {
+            vram: &memory
+        };
+
+        let tile = vram.get_tile(0, false);
+
+        assert!(matches!(tile.get_pixel_colour(0, 0), Colours::Black));
+
+        let tile = vram.get_tile(255, false);
+
+        assert!(matches!(tile.get_pixel_colour(0, 0), Colours::Black));
+    }
+
+    #[test]
+    pub fn test_get_tile_signed() {
+        let mut memory: [u8; 0xFFFF] = [0; 0xFFFF];
+
+        memory[0x1000] = 0b10000000;
+        memory[0x1001] = 0b10000000;
+        memory[0xFF0] = 0b10000000;
+        memory[0xFF1] = 0b10000000;
+
+        let vram = VRAM {
+            vram: &memory
+        };
+
+        let tile = vram.get_tile(0, true);
+
+        assert!(matches!(tile.get_pixel_colour(0, 0), Colours::Black));
+
+        let tile = vram.get_tile(255, true);
+
+        assert!(matches!(tile.get_pixel_colour(0, 0), Colours::Black));
     }
 }
