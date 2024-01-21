@@ -21,3 +21,33 @@ impl OAM<'_> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    pub fn test_get_sprite() {
+        const MAX: usize = SPRITE_BYTES as usize;
+
+        let mut memory: [u8; MAX] = [0; MAX];
+        memory[0] = 4;
+        memory[1] = 8;
+        memory[2] = 7;
+        memory[3] = 0b10100000;
+
+        let oam = OAM {
+            oam: &memory
+        };
+
+        let sprite = oam.get_sprite(0);
+
+        assert_eq!(4, sprite.y_position);
+        assert_eq!(8, sprite.x_position);
+        assert_eq!(7, sprite.tile_no);
+        assert!(sprite.bg_priority());
+        assert!(!sprite.y_flip());
+        assert!(sprite.x_flip());
+        assert!(!sprite.use_obp1());
+    }
+}
