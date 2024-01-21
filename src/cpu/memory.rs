@@ -1,4 +1,4 @@
-use std::ops::{Index, IndexMut, Range};
+use std::ops::{Index, IndexMut, RangeInclusive};
 
 const MEMORY_SIZE: usize = 0xFFFF;
 
@@ -50,12 +50,12 @@ impl Memory {
         }
     }
 
-    pub fn get_slice(&self, range: Range<usize>) -> &[u8] {
+    pub fn get_slice(&self, range: RangeInclusive<usize>) -> &[u8] {
         &self.memory[range]
     }
 
     //map values by bulk to memory, mem_range specifies where in memory
-    pub fn memory_map(&mut self, mem_range: Range<usize>, values: Vec<u8>) {
+    pub fn memory_map(&mut self, mem_range: RangeInclusive<usize>, values: Vec<u8>) {
         let mut idx = 0;
         let len = values.len();
 
@@ -102,12 +102,12 @@ mod tests {
         let mut memory = Memory::new();
 
         memory.memory_map(
-            0xC001..0xC005,
-            vec![0x10, 0x20, 0x30, 0x40]
+            0xC001..=0xC005,
+            vec![0x10, 0x20, 0x30, 0x40, 0x50]
         );
 
         assert_eq!(memory[0xC001], 0x10);
-        assert_eq!(memory[0xC004], 0x40);
+        assert_eq!(memory[0xC005], 0x50);
     }
 
     #[test]
@@ -115,13 +115,13 @@ mod tests {
         let mut memory = Memory::new();
 
         memory.memory_map(
-            0xC001..0xC005,
-            vec![0x10, 0x20, 0x30, 0x40]
+            0xC001..=0xC005,
+            vec![0x10, 0x20, 0x30, 0x40, 0x50]
         );
 
-        let slice = memory.get_slice(0xC001..0xC005);
+        let slice = memory.get_slice(0xC001..=0xC005);
 
         assert_eq!(slice[0], 0x10);
-        assert_eq!(slice[3], 0x40);
+        assert_eq!(slice[4], 0x50);
     }
 }

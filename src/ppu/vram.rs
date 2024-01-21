@@ -2,6 +2,8 @@ use self::tile::Tile;
 
 mod tile;
 
+const TILE_BYTES: u16 = 16;
+
 pub struct VRAM<'a> { //<'a> is a lifetime parameter, telling borrow checker we're expecting the borrowed vram array reference and this struct to be in the same lifetime represented as `'a`
     pub vram: &'a[u8] //NOTE: vram is a slice of gameboy memory where 0 index is actually 0x8000 in memory
 }
@@ -11,16 +13,16 @@ impl VRAM<'_> {
         let start_addr = {
             if signed_mode {
                 #[allow(overflowing_literals)]
-                let modifier = (tile_number as i8) as i16 * 16;
+                let modifier = (tile_number as i8) as i16 * (TILE_BYTES as i16);
 
                 (0x1000 as u16).wrapping_add_signed(modifier)
             } else {
-                (tile_number as u16) * 16
+                (tile_number as u16) * TILE_BYTES
             }
         } as usize;
 
         Tile {
-            data: &self.vram[start_addr..(start_addr + 16)]
+            data: &self.vram[start_addr..(start_addr + (TILE_BYTES as usize))]
         }
     }
 }

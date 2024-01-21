@@ -1,17 +1,24 @@
-use std::{ops::Range, time::Duration};
+use std::{ops::RangeInclusive, time::Duration};
 use beryllium::{
     Sdl, init::InitFlags,
     video::{Texture, RendererWindow, CreateWinArgs, RendererFlags},
     events::Event
 };
 use pixel_formats::r8g8b8a8_Srgb;
-use self::{registers::Registers, vram::VRAM};
+
+use self::{
+    registers::Registers,
+    vram::VRAM,
+    oam::OAM
+};
 
 mod registers;
 mod vram;
+mod oam;
 
-pub const LCD_REGISTERS: Range<usize> = 0xFF40..0xFF4B;
-pub const VRAM_RANGE: Range<usize> = 0x8000..0x97FF;
+pub const LCD_REGISTERS: RangeInclusive<usize> = 0xFF40..=0xFF4B;
+pub const VRAM_RANGE: RangeInclusive<usize> = 0x8000..=0x97FF;
+pub const OAM_RANGE: RangeInclusive<usize> = 0xFE00..=0xFE9F;
 
 const LCD_Y_MAX: u8 = 153;
 
@@ -71,7 +78,7 @@ impl PPU {
     }
 
     //PPU cycle and return values of registers
-    pub fn step(&mut self, registers: &[u8], vram: &[u8]) -> (Vec<u8>, Duration) {
+    pub fn step(&mut self, registers: &[u8], vram: &[u8], oam: &[u8]) -> (Vec<u8>, Duration) {
         let mut registers = Registers::from_array(registers);
         registers.ly += 1;
 
@@ -79,10 +86,12 @@ impl PPU {
             registers.ly = 0;
         }
 
-        let vram = VRAM { vram };
-        let tile = vram.get_tile(0, false);
-
         //DEBUG
+        let vram = VRAM { vram };
+        let oam = OAM { oam };
+        let tile = vram.get_tile(0, false);
+        let sprite = oam.get_sprite(39);
+
         println!(
             "t {}",
             match tile.get_pixel_colour(7, 7) {
@@ -91,6 +100,12 @@ impl PPU {
                 Colours::LightGrey => "01",
                 Colours::White => "00"
             }
+        );
+
+        println!(
+            "s x:{}, y:{}",
+            sprite.x_position,
+            sprite.y_position
         );
         //DEBUG
 

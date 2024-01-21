@@ -6,7 +6,8 @@ use crate::{
     ppu::{
         PPU,
         LCD_REGISTERS,
-        VRAM_RANGE
+        VRAM_RANGE,
+        OAM_RANGE
     }
 };
 
@@ -35,7 +36,7 @@ impl GameBoy {
     pub fn init(rom: Vec<u8>) -> GameBoy {
         let mut cpu = CPU::new();
         cpu.memory.memory_map(
-            0x0000..CARTRIDGE_ROM ,
+            0x0000..=CARTRIDGE_ROM ,
             rom
         );
 
@@ -79,7 +80,8 @@ impl GameBoy {
         let memory = &mut self.cpu.memory;
         let (values, delay) = self.ppu.step(
             memory.get_slice(LCD_REGISTERS),
-            memory.get_slice(VRAM_RANGE)
+            memory.get_slice(VRAM_RANGE),
+            memory.get_slice(OAM_RANGE)
         );
 
         memory.memory_map(
