@@ -123,6 +123,7 @@ impl PPU {
         }
 
         let lcdc = registers.get_lcd_control();
+        let stat = registers.get_lcd_status();
 
         //TODO: modify below
         self.window.set_draw_color(u8::MAX, u8::MAX, u8::MAX, u8::MAX).unwrap();
