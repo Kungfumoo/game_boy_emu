@@ -1,10 +1,8 @@
-use std::time::{Duration, Instant};
-use std::thread;
-
 use crate::{
     cpu::CPU,
     ppu::{
         PPU,
+        DOTS_PER_M_CYCLE,
         LCD_REGISTERS,
         VRAM_RANGE,
         OAM_RANGE
@@ -12,20 +10,6 @@ use crate::{
 };
 
 const CARTRIDGE_ROM: usize = 0x7FFF;
-
-struct TimeState {
-    prev: Instant,
-    delay: Duration
-}
-
-impl TimeState {
-    pub fn new() -> TimeState {
-        TimeState {
-            prev: Instant::now(),
-            delay: Duration::new(0, 0)
-        }
-    }
-}
 
 pub struct GameBoy {
     cpu: CPU,
@@ -47,13 +31,22 @@ impl GameBoy {
     }
 
     pub fn run(&mut self) {
-        let mut cpu_time_state = TimeState::new();
-        let mut ppu_time_state = TimeState::new();
-
         loop {
-            cpu_time_state = self.cpu_run(cpu_time_state);
-            ppu_time_state = self.ppu_run(ppu_time_state);
-            thread::sleep(cpu_time_state.delay); //TODO: currently throttling by the smallest delay (cpu) but will probs need to change
+            let m_cycles = self.cpu.step();
+
+            self.ppu_run(m_cycles);
+
+            /*
+                TODO: need to implement delay
+                the cpu speed (c), dots per frame (d) and screen refresh rate (s) are all linked:
+                    - c / s = d
+                    - c / d = s
+                    - s * d = c
+
+                So in theory if we throttle by refresh rate we should get precise timnigs?
+                so we need to work out how long a frame ideally takes at game boy speeds.
+                From there we subtract the emulators proceesing time from that value and then delay.
+             */
         }
     }
 
@@ -61,43 +54,20 @@ impl GameBoy {
         self.cpu.status();
     }
 
-    fn cpu_run(&mut self, state: TimeState) -> TimeState {
-        if !has_delayed(&state) {
-            return state;
-        }
-
-        TimeState {
-            prev: Instant::now(),
-            delay: self.cpu.step()
-        }
-    }
-
-    fn ppu_run(&mut self, state: TimeState) -> TimeState {
-        if !has_delayed(&state) {
-            return state;
-        }
-
+    fn ppu_run(&mut self, m_cycles: u8) {
         let memory = &mut self.cpu.memory;
-        let (values, delay) = self.ppu.step(
-            memory.get_slice(LCD_REGISTERS),
-            memory.get_slice(VRAM_RANGE),
-            memory.get_slice(OAM_RANGE)
-        );
 
-        memory.memory_map(
-            LCD_REGISTERS,
-            values
-        );
+        for _c in 0..(m_cycles * DOTS_PER_M_CYCLE) {
+            let values = self.ppu.dot(
+                memory.get_slice(LCD_REGISTERS),
+                memory.get_slice(VRAM_RANGE),
+                memory.get_slice(OAM_RANGE)
+            );
 
-        TimeState {
-            prev: Instant::now(),
-            delay: delay
+            memory.memory_map(
+                LCD_REGISTERS,
+                values
+            );
         }
     }
-}
-
-fn has_delayed(state: &TimeState) -> bool {
-    let now = Instant::now() - state.prev;
-
-    now >= state.delay
 }

@@ -1,4 +1,4 @@
-use std::{ops::RangeInclusive, time::Duration};
+use std::ops::RangeInclusive;
 use beryllium::{
     Sdl, init::InitFlags,
     video::{Texture, RendererWindow, CreateWinArgs, RendererFlags},
@@ -19,8 +19,10 @@ mod oam;
 pub const LCD_REGISTERS: RangeInclusive<usize> = 0xFF40..=0xFF4B;
 pub const VRAM_RANGE: RangeInclusive<usize> = 0x8000..=0x97FF;
 pub const OAM_RANGE: RangeInclusive<usize> = 0xFE00..=0xFE9F;
+pub const DOTS_PER_M_CYCLE: u8 = 4;
 
-const LCD_Y_MAX: u8 = 153;
+const MAX_SCANLINES: u8 = 153;
+const DOTS_PER_SCANLINE: u16 = 456;
 
 //const PIXEL_WIDTH: i32 = 256;
 //const PIXEL_HEIGHT: i32 = 256;
@@ -34,28 +36,36 @@ enum Colours {
     Black
 }
 
+enum Mode {
+    HBlank,
+    VBlank,
+    OamScan,
+    Drawing
+}
+
 pub struct PPU {
-    //SDL
     sdl: Sdl,
     window: RendererWindow,
-    texture_buffer: Texture
+    texture_buffer: Texture,
+    mode: Mode,
+    dot_counter: u16
 }
 
 impl PPU {
     pub fn init() -> PPU {
         let sdl = Sdl::init(InitFlags::EVERYTHING);
-        let win = sdl.create_renderer_window(CreateWinArgs {
+        let window = sdl.create_renderer_window(CreateWinArgs {
             title: "Game Boy Emulator",
             width: VIEWPORT_PIXEL_WIDTH,
             height: VIEWPORT_PIXEL_HEIGHT,
             ..Default::default()
         }, RendererFlags::ACCELERATED_VSYNC);
 
-        if let Result::Err(error) = win {
+        if let Result::Err(error) = window {
             panic!("SDL window Error: {:?}", error);
         }
 
-        let win = win.unwrap();
+        let window = window.unwrap();
         let pix_buf = [r8g8b8a8_Srgb { r: 255, g: 127, b: 16, a: 255 }; 64];
         let surface = sdl.create_surface_from(&pix_buf, 8, 8);
 
@@ -64,7 +74,7 @@ impl PPU {
         }
 
         let surface = surface.unwrap();
-        let tex = win.create_texture_from_surface(&surface);
+        let tex = window.create_texture_from_surface(&surface);
 
         if let Result::Err(error) = tex {
             panic!("SDL texture Error: {:?}", error);
@@ -72,46 +82,36 @@ impl PPU {
 
         PPU {
             sdl,
-            window: win,
-            texture_buffer: tex.unwrap()
+            window,
+            texture_buffer: tex.unwrap(),
+            mode: Mode::VBlank,
+            dot_counter: 0
         }
     }
 
     //PPU cycle and return values of registers
-    pub fn step(&mut self, registers: &[u8], vram: &[u8], oam: &[u8]) -> (Vec<u8>, Duration) {
+    pub fn dot(&mut self, registers: &[u8], vram: &[u8], oam: &[u8]) -> Vec<u8> {
         let mut registers = Registers::from_array(registers);
-        registers.ly += 1;
 
-        if registers.ly > LCD_Y_MAX {
-            registers.ly = 0;
+        self.dot_counter += 1;
+
+        /*
+            TODO: render pixel to some buffer to be used by the sdl library
+            need to check how 'real time' this needs to be too.
+         */
+
+        if self.dot_counter == DOTS_PER_SCANLINE {
+            registers.ly += 1;
+
+            if registers.ly == MAX_SCANLINES {
+                registers.ly = 0;
+                self.refresh_window(&registers);
+            }
+
+            self.dot_counter = 0;
         }
 
-        //DEBUG
-        let vram = VRAM { vram };
-        let oam = OAM { oam };
-        let tile = vram.get_tile(0, false);
-        let sprite = oam.get_sprite(39);
-
-        println!(
-            "t {}",
-            match tile.get_pixel_colour(7, 7) {
-                Colours::Black => "11",
-                Colours::DarkGrey => "10",
-                Colours::LightGrey => "01",
-                Colours::White => "00"
-            }
-        );
-
-        println!(
-            "s x:{}, y:{}",
-            sprite.x_position,
-            sprite.y_position
-        );
-        //DEBUG
-
-        self.refresh_window(&registers);
-
-        (registers.to_vec(), delay())
+        registers.to_vec()
     }
 
     fn refresh_window(&mut self, registers: &Registers) {
@@ -138,9 +138,4 @@ impl PPU {
 
         self.window.present();
     }
-}
-
-fn delay() -> Duration {
-    //TODO: basic implementation until I have sorted the display: https://gbdev.io/pandocs/pixel_fifo.html#pixel-fifo
-    Duration::from_micros(16740)
 }

@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 //Sharp SM83 CPU
 use registers::{Registers, PC_START};
 use flags::Flags;
@@ -16,7 +14,7 @@ mod util;
 #[path = "./cpu_test.rs"]
 mod cpu_test;
 
-const CPU_SPEED_MHZ: f64 = 4.194304; //2hz for testing = 1e-6 * 2.0;
+const CPU_SPEED_HZ: f64 = 4.194304 * 1e+6;
 const T_TO_M_CYCLE: u8 = 4; //Timing states divisible by 4, 4 t_states = 1 machine cycle
 
 #[derive(Clone, Copy)]
@@ -119,27 +117,10 @@ impl CPU {
         self.update(&change)
     }
 
-    //perform a fetch-execute cycle and return the processing time based on t_states
-    pub fn step(&mut self) -> Duration {
+    //perform a fetch-execute cycle and return the m_cycles based on t_states
+    pub fn step(&mut self) -> u8 {
         let pc = self.registers.program_counter;
         let op_code = self.memory[pc as usize];
-
-        /*
-        if op_code == 0xCB { //TEMP
-            println!("Executing PREFIX {:#02x}", self.memory[(pc + 1) as usize]);
-        } else {
-            println!("Executing {:#02x}", op_code);
-        }*/
-
-        /*
-        if op_code == 0xBE { //TEMP: line 281 dmg.asm
-            println!("hit");
-        }
-
-        if op_code == 0x86 { //TEMP: line 292 dmg.asm
-            println!("hit");
-        }
-        */
 
         let change = instructions::execute(
             self,
@@ -149,11 +130,13 @@ impl CPU {
         self.registers.program_counter = pc.wrapping_add(get_byte_length(op_code) as u16);
         self.update(&change);
 
+        let mut t_states = change.t_states;
+
         if pc == PC_START { //emulate initial fetch that is not overlapped (2 cycles min)
-            return delay(change.t_states + T_TO_M_CYCLE);
+            t_states += T_TO_M_CYCLE;
         }
 
-        delay(change.t_states)
+        t_states / T_TO_M_CYCLE
     }
 
     fn update(&mut self, change: &StateChange) {
@@ -169,12 +152,4 @@ impl CPU {
         self.flags.update(&change.flags);
         self.memory.update(&change.memory);
     }
-}
-
-fn delay(t_states: u8) -> Duration {
-    const SPEED_HZ: f64 = CPU_SPEED_MHZ * 1e+6;
-    const M_CYCLE_TO_SECOND: f64 = 1.0 / SPEED_HZ; //1 hz = 1 machine cycle per second
-
-    let m_cycles = (t_states / T_TO_M_CYCLE) as f64;
-    Duration::from_secs_f64(m_cycles * M_CYCLE_TO_SECOND)
 }
