@@ -18,7 +18,7 @@ const CPU_SPEED_HZ: f64 = 4.194304 * 1e+6;
 const T_TO_M_CYCLE: u8 = 4; //Timing states divisible by 4, 4 t_states = 1 machine cycle
 
 #[derive(Clone, Copy)]
-enum ImeStatus {
+pub enum ImeStatus {
     Set,
     Unset,
     Scheduled //When EI is called to enable IME, it is only enabled after the next instruction, schedule first then set ime after next execution
