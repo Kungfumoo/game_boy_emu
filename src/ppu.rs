@@ -20,6 +20,7 @@ pub const LCD_REGISTERS: RangeInclusive<usize> = 0xFF40..=0xFF4B;
 pub const VRAM_RANGE: RangeInclusive<usize> = 0x8000..=0x97FF;
 pub const OAM_RANGE: RangeInclusive<usize> = 0xFE00..=0xFE9F;
 pub const DOTS_PER_M_CYCLE: u8 = 4;
+pub const DISPLAY_REFRESH_RATE: f64 = 59.73;
 
 const MAX_SCANLINES: u8 = 153;
 const DOTS_PER_SCANLINE: u16 = 456;
@@ -90,7 +91,7 @@ impl PPU {
     }
 
     //PPU cycle and return values of registers
-    pub fn dot(&mut self, registers: &[u8], vram: &[u8], oam: &[u8]) -> Vec<u8> {
+    pub fn dot(&mut self, registers: &[u8], vram: &[u8], oam: &[u8]) -> (Vec<u8>, bool) {
         let mut registers = Registers::from_array(registers);
 
         self.dot_counter += 1;
@@ -100,18 +101,20 @@ impl PPU {
             need to check how 'real time' this needs to be too.
          */
 
+        let mut is_frame_complete = false;
         if self.dot_counter == DOTS_PER_SCANLINE {
             registers.ly += 1;
 
-            if registers.ly == MAX_SCANLINES {
+            if registers.ly == MAX_SCANLINES { //Complete Frame
                 registers.ly = 0;
+                is_frame_complete = true;
                 self.refresh_window(&registers);
             }
 
             self.dot_counter = 0;
         }
 
-        registers.to_vec()
+        (registers.to_vec(), is_frame_complete)
     }
 
     fn refresh_window(&mut self, registers: &Registers) {
