@@ -24,6 +24,8 @@ pub const DISPLAY_REFRESH_RATE: f64 = 59.73;
 
 const MAX_SCANLINES: u8 = 153;
 const DOTS_PER_SCANLINE: u16 = 456;
+const OAM_SCAN_RANGE: RangeInclusive<u16> = 0..=80;
+const VBLANK_SCANLINE_START: u8 = MAX_SCANLINES - 10; //10 lines of vblank
 
 //const PIXEL_WIDTH: i32 = 256;
 //const PIXEL_HEIGHT: i32 = 256;
@@ -95,6 +97,12 @@ impl PPU {
         let mut registers = Registers::from_array(registers);
 
         self.dot_counter += 1;
+        self.mode = switch_mode(registers.ly, self.dot_counter);
+
+        match self.mode {
+            Mode::OamScan => self.oam_scan(OAM { oam }),
+            _ => () //TODO: cover other modes
+        }
 
         /*
             TODO: render pixel to some buffer to be used by the sdl library
@@ -141,4 +149,19 @@ impl PPU {
 
         self.window.present();
     }
+
+    fn oam_scan(&self, oam: OAM) {
+    }
+}
+
+fn switch_mode(sline_counter: u8, dot_counter: u16) -> Mode { //TODO: test
+    if sline_counter > VBLANK_SCANLINE_START {
+        return Mode::VBlank;
+    }
+
+    if OAM_SCAN_RANGE.contains(&dot_counter) {
+        return Mode::OamScan;
+    }
+
+    Mode::HBlank
 }
