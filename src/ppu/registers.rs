@@ -6,7 +6,7 @@ mod lcd_status;
 pub struct Registers {
     lcdc: u8, //LCD Control register
     stat: u8, //LCD Status register
-    pub ly: u8 //LCD Y Coordinate (READ-ONLY)
+    ly: u8 //LCD Y Coordinate
 }
 
 impl Registers {
@@ -18,6 +18,15 @@ impl Registers {
         }
     }
 
+    pub fn increment_ly(&mut self) -> u8 {
+        self.ly += 1;
+        self.get_ly()
+    }
+
+    pub fn reset_ly(&mut self) {
+        self.ly = 0
+    }
+
     pub fn to_vec(&self) -> Vec<u8> {
         vec![
             self.lcdc, //0xFF40
@@ -26,6 +35,10 @@ impl Registers {
             0x00, //0xFF43
             self.ly, //0xFF44
         ]
+    }
+
+    pub fn get_ly(&self) -> u8 {
+        self.ly
     }
 
     pub fn get_lcd_control(&self) -> LcdControl {

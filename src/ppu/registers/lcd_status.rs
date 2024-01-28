@@ -4,8 +4,8 @@ pub struct LcdStatus { //NOTE: bit 7 is unused but always set to 1.
     mode_1_enable: bool, //enables the "mode 1 condition" to trigger a STAT interrupt.
     mode_0_enable: bool, //enables the "mode 0 condition" to trigger a STAT interrupt.
     coincidence: bool, //set by the ppu if ly==lyc
-    ppu_mode_msb: bool,
-    ppu_mode_lsb: bool
+    ppu_mode_msb: bool, //set by the ppu
+    ppu_mode_lsb: bool //set by the ppu
 }
 
 impl LcdStatus {

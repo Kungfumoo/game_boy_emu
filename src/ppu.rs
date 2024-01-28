@@ -103,7 +103,7 @@ impl PPU {
     pub fn dot(&mut self, registers: &[u8], vram: &[u8], oam: &[u8]) -> (Vec<u8>, bool) {
         let mut registers = Registers::from_array(registers);
 
-        self.mode = switch_mode(registers.ly, self.dot_counter);
+        self.mode = switch_mode(registers.get_ly(), self.dot_counter);
 
         match self.mode {
             Mode::OamScan => self.oam_scan(OAM { oam }, &registers),
@@ -119,10 +119,10 @@ impl PPU {
 
         let mut is_frame_complete = false;
         if self.dot_counter == DOTS_PER_SCANLINE {
-            registers.ly += 1;
+            let ly = registers.increment_ly();
 
-            if registers.ly == MAX_SCANLINES { //Complete Frame
-                registers.ly = 0;
+            if ly == MAX_SCANLINES { //Complete Frame
+                registers.reset_ly();
                 is_frame_complete = true;
                 self.refresh_window(&registers);
             }
@@ -173,7 +173,7 @@ impl PPU {
             return;
         }
 
-        let ly = registers.ly + SPRITE_Y_MODIFIER;
+        let ly = registers.get_ly() + SPRITE_Y_MODIFIER;
         if ly < sprite.y_position { //we're below the sprite so don't load
             return;
         }
