@@ -1,6 +1,6 @@
 use self::sprite::Sprite;
 
-mod sprite;
+pub mod sprite;
 
 const SPRITE_BYTES: u16 = 4;
 

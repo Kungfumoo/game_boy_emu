@@ -1,4 +1,7 @@
-use std::ops::RangeInclusive;
+use std::ops::{
+    RangeInclusive,
+    Range
+};
 use beryllium::{
     Sdl, init::InitFlags,
     video::{Texture, RendererWindow, CreateWinArgs, RendererFlags},
@@ -9,7 +12,7 @@ use pixel_formats::r8g8b8a8_Srgb;
 use self::{
     registers::Registers,
     vram::VRAM,
-    oam::OAM
+    oam::{sprite::Sprite, OAM}
 };
 
 mod registers;
@@ -24,8 +27,10 @@ pub const DISPLAY_REFRESH_RATE: f64 = 59.73;
 
 const MAX_SCANLINES: u8 = 153;
 const DOTS_PER_SCANLINE: u16 = 456;
-const OAM_SCAN_RANGE: RangeInclusive<u16> = 0..=80;
+const OAM_SCAN_RANGE: Range<u16> = 0..80;
 const VBLANK_SCANLINE_START: u8 = MAX_SCANLINES - 10; //10 lines of vblank
+const SPRITE_Y_MODIFIER: u8  = 16; //used to determine the real y position, ie sprite.y - 16 = actual location on the viewport.
+const SPRITE_BUFFER_MAX: usize = 10;
 
 //const PIXEL_WIDTH: i32 = 256;
 //const PIXEL_HEIGHT: i32 = 256;
@@ -50,6 +55,7 @@ pub struct PPU {
     sdl: Sdl,
     window: RendererWindow,
     texture_buffer: Texture,
+    sprite_buffer: Vec<Sprite>,
     mode: Mode,
     dot_counter: u16
 }
@@ -87,6 +93,7 @@ impl PPU {
             sdl,
             window,
             texture_buffer: tex.unwrap(),
+            sprite_buffer: Vec::new(),
             mode: Mode::VBlank,
             dot_counter: 0
         }
@@ -96,11 +103,10 @@ impl PPU {
     pub fn dot(&mut self, registers: &[u8], vram: &[u8], oam: &[u8]) -> (Vec<u8>, bool) {
         let mut registers = Registers::from_array(registers);
 
-        self.dot_counter += 1;
         self.mode = switch_mode(registers.ly, self.dot_counter);
 
         match self.mode {
-            Mode::OamScan => self.oam_scan(OAM { oam }),
+            Mode::OamScan => self.oam_scan(OAM { oam }, &registers),
             _ => () //TODO: cover other modes
         }
 
@@ -108,6 +114,8 @@ impl PPU {
             TODO: render pixel to some buffer to be used by the sdl library
             need to check how 'real time' this needs to be too.
          */
+
+        self.dot_counter += 1;
 
         let mut is_frame_complete = false;
         if self.dot_counter == DOTS_PER_SCANLINE {
@@ -150,7 +158,34 @@ impl PPU {
         self.window.present();
     }
 
-    fn oam_scan(&self, oam: OAM) {
+    fn oam_scan(&mut self, oam: OAM, registers: &Registers) {
+        if self.sprite_buffer.len() >= SPRITE_BUFFER_MAX {
+            return;
+        }
+
+        let should_load = (self.dot_counter % 2) == 0; //PPU checks and loads a new entry every 2 dots
+        if !should_load {
+            return;
+        }
+
+        let sprite = oam.get_sprite(self.dot_counter / 2);
+        if sprite.x_position == 0 { //x = 0 means hidden so don't load
+            return;
+        }
+
+        let ly = registers.ly + SPRITE_Y_MODIFIER;
+        if ly < sprite.y_position { //we're below the sprite so don't load
+            return;
+        }
+
+        let lcdc = registers.get_lcd_control();
+        let sprite_height = sprite.get_y_height(lcdc.tall_sprite);
+
+        if ly >= sprite_height { //we're above the sprite so don't load
+            return;
+        }
+
+        self.sprite_buffer.push(sprite);
     }
 }
 
