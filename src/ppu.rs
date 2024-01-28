@@ -44,6 +44,7 @@ enum Colours {
     Black
 }
 
+#[derive(PartialEq)]
 enum Mode {
     HBlank,
     VBlank,
@@ -102,8 +103,12 @@ impl PPU {
     //PPU cycle and return values of registers
     pub fn dot(&mut self, registers: &[u8], vram: &[u8], oam: &[u8]) -> (Vec<u8>, bool) {
         let mut registers = Registers::from_array(registers);
+        let mode = get_mode(registers.get_ly(), self.dot_counter);
 
-        self.mode = switch_mode(registers.get_ly(), self.dot_counter);
+        if mode != self.mode {
+            self.mode = mode;
+            registers.update_mode(&self.mode);
+        }
 
         match self.mode {
             Mode::OamScan => self.oam_scan(OAM { oam }, &registers),
@@ -124,7 +129,7 @@ impl PPU {
             if ly == MAX_SCANLINES { //Complete Frame
                 registers.reset_ly();
                 is_frame_complete = true;
-                self.refresh_window(&registers);
+                self.refresh_window();
             }
 
             self.dot_counter = 0;
@@ -133,16 +138,13 @@ impl PPU {
         (registers.to_vec(), is_frame_complete)
     }
 
-    fn refresh_window(&mut self, registers: &Registers) {
+    fn refresh_window(&mut self) {
         while let Some((event, _)) = self.sdl.poll_events() {
             match event {
                 Event::Quit => std::process::exit(0),
                 _ => (),
             }
         }
-
-        let lcdc = registers.get_lcd_control();
-        let stat = registers.get_lcd_status();
 
         //TODO: modify below
         self.window.set_draw_color(u8::MAX, u8::MAX, u8::MAX, u8::MAX).unwrap();
@@ -189,7 +191,7 @@ impl PPU {
     }
 }
 
-fn switch_mode(sline_counter: u8, dot_counter: u16) -> Mode { //TODO: test
+fn get_mode(sline_counter: u8, dot_counter: u16) -> Mode { //TODO: test
     if sline_counter > VBLANK_SCANLINE_START {
         return Mode::VBlank;
     }
