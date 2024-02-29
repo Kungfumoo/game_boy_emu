@@ -28,6 +28,7 @@ pub const DISPLAY_REFRESH_RATE: f64 = 59.73;
 const MAX_SCANLINES: u8 = 153;
 const DOTS_PER_SCANLINE: u16 = 456;
 const OAM_SCAN_RANGE: Range<u16> = 0..80;
+const DRAW_RANGE: Range<u16> = 80..369; //369 being the max possible range
 const VBLANK_SCANLINE_START: u8 = MAX_SCANLINES - 10; //10 lines of vblank
 const SPRITE_Y_MODIFIER: u8  = 16; //used to determine the real y position, ie sprite.y - 16 = actual location on the viewport.
 const SPRITE_BUFFER_MAX: usize = 10;
@@ -103,7 +104,14 @@ impl PPU {
     //PPU cycle and return values of registers
     pub fn dot(&mut self, registers: &[u8], vram: &[u8], oam: &[u8]) -> (Vec<u8>, bool) {
         let mut registers = Registers::from_array(registers);
-        let mode = get_mode(registers.get_ly(), self.dot_counter);
+        let mode = get_mode(
+            registers.get_ly(),
+            self.dot_counter,
+            match self.mode {
+                Mode::Drawing => true,
+                _ => false
+            }
+        );
 
         if mode != self.mode {
             self.mode = mode;
@@ -112,6 +120,7 @@ impl PPU {
 
         match self.mode {
             Mode::OamScan => self.oam_scan(OAM { oam }, &registers),
+            Mode::Drawing => self.draw(),
             _ => () //TODO: cover other modes
         }
 
@@ -189,15 +198,28 @@ impl PPU {
 
         self.sprite_buffer.push(sprite);
     }
+
+    fn draw(&mut self) {
+        //We go hblank for the remainder of the line
+        self.go_hblank();
+    }
+
+    fn go_hblank(&mut self) {
+        self.mode = Mode::HBlank;
+    }
 }
 
-fn get_mode(sline_counter: u8, dot_counter: u16) -> Mode { //TODO: test
+fn get_mode(sline_counter: u8, dot_counter: u16, is_drawing: bool) -> Mode { //TODO: test
     if sline_counter > VBLANK_SCANLINE_START {
         return Mode::VBlank;
     }
 
     if OAM_SCAN_RANGE.contains(&dot_counter) {
         return Mode::OamScan;
+    }
+
+    if DRAW_RANGE.start == dot_counter || (DRAW_RANGE.contains(&dot_counter) && is_drawing) {
+        return Mode::Drawing;
     }
 
     Mode::HBlank
